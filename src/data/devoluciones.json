@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "titulo": "Paisaje 1",
+        "url_imagen": "https://www.w3schools.com/w3images/mountains.jpg",
+        "fecha": "2024-08-13"
+    },
+    {
+        "id": 2,
+        "titulo": "Paisaje 2",
+        "url_imagen": "https://www.w3schools.com/w3images/forest.jpg",
+        "fecha": "2024-08-14"
+    },
+    {
+        "id": 3,
+        "titulo": "Paisaje 3",
+        "url_imagen": "https://www.w3schools.com/w3images/lights.jpg",
+        "fecha": "2024-08-15"
+    }
+]

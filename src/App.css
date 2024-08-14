@@ -1,0 +1,97 @@
+/* Navbar */
+header {
+  display: flex;
+  background-color: darkslategrey;
+  padding: 1em;
+  color: white;
+}
+
+header > * {
+  width: 50%;
+}
+
+header img {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+header ul {
+  display: flex;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+header ul > * {
+  text-decoration: none;
+  list-style: none;
+  padding: 0 1em;
+}
+
+
+/* Inventario */
+.contenedor-articulo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+  gap: 16px;
+  margin: auto;
+}
+
+.div-articulo {
+  border: solid 1px red;
+  width: 50%;
+  margin: auto;
+}
+
+.div-articulo h2 {
+  text-align: center;
+  padding: 0 1em;
+}
+
+.div-articulo p{
+  text-align: start;
+  padding: 0 1em;
+}
+
+/* Ventas */
+.contenedor-ventas form {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+  gap: 1em;
+  margin: auto;
+  padding: 1em;
+}
+
+/* Devoluciones */
+.boletas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap:16px;
+  padding: 1em;
+}
+
+.boleta {
+  border: solid 1px black;
+  width: 75%;
+  margin: auto;
+  border-radius: 10px
+}
+
+.boleta p {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.boleta img {
+  width: 100%;
+}
+
+
+
+
+
+
