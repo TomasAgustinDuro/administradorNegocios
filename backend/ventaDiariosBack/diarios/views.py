@@ -56,6 +56,13 @@ def diario_vendido_detail(request, pk):
         diario.delete()
         return HttpResponse(status=204)
 
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def eliminar_ventas(request):
+    DiarioVendido.objects.all().delete()
+    return HttpResponse(status=204)
+
+
 # Vista para Inventario
 @csrf_exempt
 @require_http_methods(["GET", "POST"])

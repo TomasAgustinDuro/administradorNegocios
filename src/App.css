@@ -41,7 +41,6 @@ header ul > * {
 }
 
 .div-articulo {
-  border: solid 1px red;
   width: 50%;
   margin: auto;
 }
@@ -92,12 +91,12 @@ header ul > * {
 
 /* Ventas */
 .contenedor-ingreso-ventas form {
-  border: solid 1px red;
   display: flex;
   flex-direction: column;
   width:25%;
   gap: 1em;
-}
+  margin: 1em 0;
+} 
 
 .contenedor-ventas {
   display: flex;
