@@ -15,7 +15,7 @@ export function Devoluciones() {
   return (
     <>
       <section className="contenedor-boletas">
-        <div className="boletas">{mostrarBoletas()}</div>
+        <div className="boletas">{mostrarBoletas()}</div>       
       </section>
     </>
   );

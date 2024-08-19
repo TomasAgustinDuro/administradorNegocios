@@ -1,0 +1,38 @@
+[
+    {
+      "index": 0,
+      "nombre": "El País",
+      "valor": 1500
+    },
+    {
+      "index": 1,
+      "nombre": "La Nación",
+      "valor": 1200
+    },
+    {
+      "index": 2,
+      "nombre": "Clarín",
+      "valor": 1300
+    },
+    {
+      "index": 3,
+      "nombre": "El Mundo",
+      "valor": 1400
+    },
+    {
+      "index": 4,
+      "nombre": "ABC",
+      "valor": 1100
+    },
+    {
+      "index": 5,
+      "nombre": "La Vanguardia",
+      "valor": 1600
+    },
+    {
+      "index": 6,
+      "nombre": "El Universal",
+      "valor": 1000
+    }
+  ]
+  

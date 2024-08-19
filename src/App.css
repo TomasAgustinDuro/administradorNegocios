@@ -90,8 +90,34 @@ header ul > * {
   width: 100%;
 }
 
+/* Ventas */
+.contenedor-ingreso-ventas form {
+  border: solid 1px red;
+  display: flex;
+  flex-direction: column;
+  width:25%;
+  gap: 1em;
+}
 
+.contenedor-ventas {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
 
+.contenedor-diarios {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0 1em;
+}
 
-
+.contenedor-total{
+  margin: 1em 0;
+  background-color: lightblue;
+  display: flex;
+  width: 25%;
+  padding: 0 1em;
+}
 
