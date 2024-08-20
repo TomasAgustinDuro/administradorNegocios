@@ -62,14 +62,13 @@ def eliminar_ventas(request):
     DiarioVendido.objects.all().delete()
     return HttpResponse(status=204)
 
-
 # Vista para Inventario
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def inventario_list(request):
     if request.method == 'GET':
         inventarios = Inventario.objects.all()
-        data = list(inventarios.values('id', 'nombre', 'codigo_barras', 'numero_identificador'))
+        data = list(inventarios.values('id', 'nombre', 'codigo_barras', 'stock', 'vendido', 'restante'))
         return JsonResponse(data, safe=False)
     
     if request.method == 'POST':
@@ -77,13 +76,16 @@ def inventario_list(request):
         nuevo_inventario = Inventario.objects.create(
             nombre=body['nombre'],
             codigo_barras=body['codigo_barras'],
-            numero_identificador=body['numero_identificador']
+            stock = body['stock'],            
+            vendido = body ['vendido'],
+            restante = int(body.get('stock')) - int(body ['vendido'])
         )
         return JsonResponse({
             'id': nuevo_inventario.id,
             'nombre': nuevo_inventario.nombre,
-            'codigo_barras': nuevo_inventario.codigo_barras,
-            'numero_identificador': nuevo_inventario.numero_identificador
+            'codigo_barras': nuevo_inventario.codigo_barras,    
+            'stock':nuevo_inventario.stock,
+            'vendido':nuevo_inventario.vendido
         })
 
 @csrf_exempt
@@ -95,11 +97,15 @@ def inventario_detail(request, pk):
         return HttpResponse(status=404)
     
     if request.method == 'GET':
+        restante = inventario.stock - inventario.vendido 
         data = {
             'id': inventario.id,
             'nombre': inventario.nombre,
             'codigo_barras': inventario.codigo_barras,
-            'numero_identificador': inventario.numero_identificador
+            'numero_identificador': inventario.numero_identificador,
+            'stock': inventario.stock,
+            'vendido': inventario.vendido,
+            'restante': restante
         }
         return JsonResponse(data)
     
@@ -108,12 +114,19 @@ def inventario_detail(request, pk):
         inventario.nombre = body['nombre']
         inventario.codigo_barras = body['codigo_barras']
         inventario.numero_identificador = body['numero_identificador']
+        inventario.stock = body.get('stock', inventario.stock)
+        inventario.vendido = body.get('vendido', inventario.vendido)
         inventario.save()
+        restante = inventario.stock - inventario.vendido 
+        
         return JsonResponse({
             'id': inventario.id,
             'nombre': inventario.nombre,
             'codigo_barras': inventario.codigo_barras,
-            'numero_identificador': inventario.numero_identificador
+            'numero_identificador': inventario.numero_identificador,
+            'stock': inventario.stock,
+            'vendido': inventario.vendido,
+            'restante': restante
         })
     
     if request.method == 'DELETE':

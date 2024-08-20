@@ -10,7 +10,9 @@ class DiarioVendido(models.Model):
 class Inventario(models.Model):
     nombre = models.CharField(max_length=255)
     codigo_barras = models.CharField(max_length=255, unique=True)
-    numero_identificador = models.CharField(max_length=255, unique=True)
+    stock = models.IntegerField(default=0)  # Agrega esta columna
+    vendido = models.IntegerField(default=0)  # Agrega esta columna
+    restante = models.IntegerField(default=0)  # Agrega esta columna
 
     def __str__(self):
         return self.nombre

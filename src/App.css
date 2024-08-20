@@ -55,6 +55,13 @@ header ul > * {
   padding: 0 1em;
 }
 
+.containers-modifiers{
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  width: 25%;
+}
+
 /* Ventas */
 .contenedor-ventas form {
   display: flex;

@@ -55,7 +55,7 @@ export function Ventas() {
       .then((response) => {
         if (response.ok) {
           console.log("Articulos eliminado con exito");
-          setVentas([]); 
+          setVentas([]); // Reinicia el estado para eliminar todas las ventas del UI
           setTotalVenta(0); 
         } else {
           console.error("Error al eliminar los articulos");
