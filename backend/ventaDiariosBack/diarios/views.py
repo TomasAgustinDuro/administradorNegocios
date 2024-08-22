@@ -102,7 +102,6 @@ def inventario_detail(request, pk):
             'id': inventario.id,
             'nombre': inventario.nombre,
             'codigo_barras': inventario.codigo_barras,
-            'numero_identificador': inventario.numero_identificador,
             'stock': inventario.stock,
             'vendido': inventario.vendido,
             'restante': restante
@@ -111,19 +110,28 @@ def inventario_detail(request, pk):
     
     if request.method == 'PUT':
         body = json.loads(request.body)
-        inventario.nombre = body['nombre']
-        inventario.codigo_barras = body['codigo_barras']
-        inventario.numero_identificador = body['numero_identificador']
-        inventario.stock = body.get('stock', inventario.stock)
-        inventario.vendido = body.get('vendido', inventario.vendido)
+        if 'nombre' in body:
+                inventario.nombre = body['nombre']
+        if 'codigo_barras' in body:
+                inventario.codigo_barras = body['codigo_barras']
+        if 'stock' in body:
+                inventario.stock = body['stock']
+        if 'vendido' in body:
+            vendido = int(body['vendido'])
+            inventario.vendido += vendido
+        
+        
+        restante = inventario.stock - inventario.vendido
+        inventario.restante = restante
+
+        
         inventario.save()
-        restante = inventario.stock - inventario.vendido 
+        
         
         return JsonResponse({
             'id': inventario.id,
             'nombre': inventario.nombre,
             'codigo_barras': inventario.codigo_barras,
-            'numero_identificador': inventario.numero_identificador,
             'stock': inventario.stock,
             'vendido': inventario.vendido,
             'restante': restante
@@ -139,19 +147,24 @@ def inventario_detail(request, pk):
 def devolucion_list(request):
     if request.method == 'GET':
         devoluciones = Devolucion.objects.all()
-        data = list(devoluciones.values('id', 'imagen', 'fecha'))
+        data = [{
+            'id': devolucion.id,
+            'imagen': devolucion.imagen.url,
+            'fecha': devolucion.fecha
+        }for devolucion in devoluciones]
         return JsonResponse(data, safe=False)
     
     if request.method == 'POST':
-        body = json.loads(request.body)
-        # Asumimos que la imagen se sube de una manera adecuada, pero se omite para simplificar
+        imagen = request.FILES.get('imagen')
+        fecha = request.POST.get('fecha')
+        
         nueva_devolucion = Devolucion.objects.create(
-            imagen=body['imagen'],
-            fecha=body['fecha']
+            imagen=imagen,
+            fecha=fecha
         )
         return JsonResponse({
             'id': nueva_devolucion.id,
-            'imagen': nueva_devolucion.imagen.url,  # Obtén la URL de la imagen
+            'imagen': nueva_devolucion.imagen.url,
             'fecha': nueva_devolucion.fecha
         })
 
@@ -173,7 +186,7 @@ def devolucion_detail(request, pk):
     
     if request.method == 'PUT':
         body = json.loads(request.body)
-        devolucion.imagen = body['imagen']  # Deberías manejar la carga de archivos adecuadamente
+        devolucion.imagen = body['imagen']  
         devolucion.fecha = body['fecha']
         devolucion.save()
         return JsonResponse({

@@ -3,14 +3,14 @@ import { useState, useEffect, useRef } from "react";
 
 export function Inventario() {
   const [articulos, setArticulos] = useState([]);
-  const [error, setError] = useState(null);
   const [shouldRefresh, setShouldRefresh] = useState(false);
-  const nombreRef = useRef(null)
-  const stockRef = useRef(null)
-  const vendidoRef = useRef(null)
-  const codigoBarrasRef = useRef(null)
+  const nombreRef = useRef(null);
+  const stockRef = useRef(null);
+  const vendidoRef = useRef(null);
+  const codigoBarrasRef = useRef(null);
+  const sellUpdateRef = useRef(null);
 
-  async function postArticulo(formMethod,formData) {
+  async function postArticulo(formMethod, formData) {
     const url = "http://localhost:8000/diarios/api/inventarios/";
     try {
       const response = await fetch(url, {
@@ -18,14 +18,14 @@ export function Inventario() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData), 
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
         throw new Error(`Response status: ${response.status}`);
       }
 
-      setShouldRefresh(prev => !prev)
+      setShouldRefresh((prev) => !prev);
     } catch (error) {
       console.error(error.message);
     }
@@ -40,7 +40,7 @@ export function Inventario() {
       .then((response) => {
         if (response.ok) {
           console.log("Articulo eliminado con exito");
-          setArticulos(articulos.filter(item => item.id !== articuloCodigo));
+          setArticulos(articulos.filter((item) => item.id !== articuloCodigo));
         } else {
           console.error("Error al eliminar articulo");
         }
@@ -64,7 +64,7 @@ export function Inventario() {
       })
       .then((articulosInventario) => {
         const datosArticulos = articulosInventario.map((articulo) => ({
-          id:articulo.id,
+          id: articulo.id,
           nombre: articulo.nombre,
           stock: articulo.stock,
           restante: articulo.restante,
@@ -74,32 +74,58 @@ export function Inventario() {
         setArticulos(datosArticulos);
       })
       .catch((error) => {
-        setError(error.message);
+        console.error(error.message)
       });
   }, [shouldRefresh]);
-
 
   function handleSubmit(e) {
     e.preventDefault();
 
     const form = e.target;
-    const formData = new FormData(form)
+    const formData = new FormData(form);
 
     const data = {
-      codigo_barras:formData.get("codigo"),
+      codigo_barras: formData.get("codigo"),
       nombre: formData.get("nombre"),
       stock: formData.get("stock"),
-      vendido: formData.get("vendido")
-    }
+      vendido: formData.get("vendido"),
+    };
 
-    postArticulo(form.method, data)
+    postArticulo(form.method, data);
 
     nombreRef.current.value = "";
     stockRef.current.value = "";
-    codigoBarrasRef.current.value="";
-    vendidoRef.current.value="";
+    codigoBarrasRef.current.value = "";
+    vendidoRef.current.value = "";
   }
 
+  useEffect(() => {
+    const url = "http://localhost:8000/diarios/api/inventarios";
+
+    fetch(url, {
+      method: "GET",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Response status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((articulosInventario) => {
+        const datosArticulos = articulosInventario.map((articulo) => ({
+          id: articulo.id,
+          nombre: articulo.nombre,
+          stock: articulo.stock,
+          restante: articulo.restante,
+          codigoBarras: articulo.codigo_barras,
+        }));
+
+        setArticulos(datosArticulos);
+      })
+      .catch((error) => {
+        console.error(error.message)
+      });
+  }, [shouldRefresh]);
 
   const mostrarInformacion = () => {
     return articulos.map((articulo, id) => (
@@ -110,31 +136,93 @@ export function Inventario() {
         <p>Quedan: {articulo.restante}</p>
 
         <div className="containers-modifiers">
-            <button className="modifier-delete" onClick={() => {
-              handleDelete(articulo.id)
-            }}>
-                Borrar elemento
-            </button>
-            <button className="modifier-modify-quantity">
-                Modificar cantidad
-            </button>
+          <button
+            className="modifier-delete"
+            onClick={() => {
+              handleDelete(articulo.id);
+            }}
+          >
+            Borrar elemento
+          </button>
+          <button
+            className="modifier-modify-quantity"
+            onClick={() => {
+              updateSell(sellUpdateRef.current.value, articulo.id);
+              sellUpdateRef.current.value = ''
+            }}
+          >
+            Modificar cantidad
+          </button>
+          <input
+            type="number"
+            ref={sellUpdateRef}
+            name="sellUpdateInput"
+            placeholder="Ingresa el nuevo valor"
+          />
         </div>
         <hr />
       </div>
     ));
   };
 
+  function updateSell(valor, articuloCodigo) {
+    const url = `http://localhost:8000/diarios/api/inventarios/${articuloCodigo}/`;
+
+    const dataUpdate = {
+      vendido: valor,
+    };
+
+    fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dataUpdate),
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Articulo actualizado con exito");
+          setShouldRefresh((prev) => !prev);
+        } else {
+          console.error("Error al actualizar articulo");
+        }
+      })
+      .catch((error) => {
+        console.error("Error en la solicitud:", error);
+      });
+  }
+
   return (
     <>
       <section className="form-inventory">
-      <form method="POST" onSubmit={handleSubmit}>
-        <input type="text" ref={codigoBarrasRef} name="codigo" placeholder="Codigo" />
-        <input type="text" ref={nombreRef} name="nombre" placeholder="Nombre" />
-        <input type="number" ref={stockRef} name="stock" placeholder="Stock" />
-        <input type="number" ref={vendidoRef} name="vendido" placeholder="Vendido" />
+        <form method="POST" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            ref={codigoBarrasRef}
+            name="codigo"
+            placeholder="Codigo"
+          />
+          <input
+            type="text"
+            ref={nombreRef}
+            name="nombre"
+            placeholder="Nombre"
+          />
+          <input
+            type="number"
+            ref={stockRef}
+            name="stock"
+            placeholder="Stock"
+          />
+          <input
+            type="number"
+            ref={vendidoRef}
+            name="vendido"
+            placeholder="Vendido"
+          />
 
-        <button>Cargar articulo</button>
-      </form>
+          <button>Cargar articulo</button>
+        </form>
       </section>
       <section className="contenedor-articulo">
         <div className="div-articulo">{mostrarInformacion()}</div>
