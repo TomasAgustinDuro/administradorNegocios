@@ -30,6 +30,6 @@ Cualquier feedback, sugerencia o consejo es muy bienvenido. Puedes colaborar con
 
 ## Repositorio
 
-Puedes encontrar el repositorio del proyecto en [enlace al repositorio]. Ten en cuenta que el proyecto está en desarrollo y pueden quedar cambios por cargar.
+Puedes encontrar el repositorio del proyecto en https://github.com/TomasAgustinDuro/adminitradorNegocios. Ten en cuenta que el proyecto está en desarrollo y pueden quedar cambios por cargar.
 
 ¡Agradezco cualquier apoyo y espero que este proyecto mejore la eficiencia en nuestra operación diaria!
