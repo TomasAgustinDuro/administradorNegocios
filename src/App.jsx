@@ -1,15 +1,10 @@
 import "./App.css";
-// import { Inventario } from "./components/Inventario";
-import { Navbar } from "./components/shared/Navbar";
-// import { Ventas } from "./components/Ventas";
-import {Devoluciones} from "./components/Devoluciones"
-
+import MainLayout from "./components/MainLayout";
 
 function App() {
   return (
     <>
-      <Navbar/>
-      <Devoluciones/>
+      <MainLayout/>
     </>
   );
 }

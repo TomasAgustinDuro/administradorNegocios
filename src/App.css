@@ -1,3 +1,8 @@
+*{
+  margin: 0;
+}
+
+
 /* Navbar */
 header {
   display: flex;
@@ -29,6 +34,11 @@ header ul > * {
   text-decoration: none;
   list-style: none;
   padding: 0 1em;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
 }
 
 
@@ -63,12 +73,38 @@ header ul > * {
 }
 
 /* Ventas */
-.contenedor-ventas form {
+.sales-management-container{
+  border: solid 1px red;
+  display: flex;
+  gap: 1em;
+}
+
+.sales-input-container{
+  border: solid 1px red;
+  width: 30%;
+  padding: 1em;
+}
+
+.sales-input-container form {
   display: flex;
   flex-direction: column;
-  width: 30%;
   gap: 1em;
+}
+
+.sales-input-container form button {
+  width: 50%;
   margin: auto;
+}
+
+.sales-list-container {
+  border: solid 1px red;
+  flex-direction: column;
+  width: 70%;
+}
+
+.sales-item {
+  display: flex;
+  justify-content: space-between;
   padding: 1em;
 }
 
@@ -84,7 +120,7 @@ header ul > * {
   border: solid 1px black;
   width: 75%;
   margin: auto;
-  border-radius: 10px
+  border-radius: 10px;
 }
 
 .boleta p {
@@ -119,11 +155,22 @@ header ul > * {
   padding: 0 1em;
 }
 
-.contenedor-total{
-  margin: 1em 0;
-  background-color: lightblue;
+.sales-summary-container {
   display: flex;
-  width: 25%;
-  padding: 0 1em;
+  flex-direction: row-reverse;
+  justify-content: space-between;
 }
+
+.sales-summary-container p {
+  background-color: lightblue;
+  padding: 1em;
+}
+
+.sales-summary-container button {
+  border: solid 1px red;
+}
+
+
+
+
 

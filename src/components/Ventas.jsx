@@ -56,7 +56,7 @@ export function Ventas() {
         if (response.ok) {
           console.log("Articulos eliminado con exito");
           setVentas([]); // Reinicia el estado para eliminar todas las ventas del UI
-          setTotalVenta(0); 
+          setTotalVenta(0);
         } else {
           console.error("Error al eliminar los articulos");
         }
@@ -116,64 +116,63 @@ export function Ventas() {
 
   return (
     <>
-      <section className="contenedor-ingreso-ventas">
-        <form method="post" onSubmit={handleSubmit}>
-          <input
-            ref={articuloRef}
-            type="text"
-            name="articulo"
-            placeholder="Ingrese el nombre de la venta"
-          />
-          <input
-            type="number"
-            ref={valorRef}
-            name="valor"
-            placeholder="Valor"
-          />
-          <button type="submit">Cargar venta</button>
-        </form>
-      </section>
+      <div className="sales-management-container">
+        <section className="sales-input-container">
+          <form method="post" onSubmit={handleSubmit}>
+            <input
+              ref={articuloRef}
+              type="text"
+              name="articulo"
+              placeholder="Enter sale name"
+            />
+            <input
+              type="number"
+              ref={valorRef}
+              name="valor"
+              placeholder="Value"
+            />
+            <button type="submit">Add Sale</button>
+          </form>
+        </section>
 
-      <section className="contenedor-ventas">
-        {ventas.map((diario) => (
-          <div
-            key={diario.id}
-            className="contenedor-diarios"
-            style={{
-              backgroundColor: diario.id % 2 === 0 ? "lightgrey" : "white",
-            }}
-          >
-            <h3>{diario.nombre}</h3>
-            <p>$ {diario.valor}</p>
-
-            <button
-              className="buttonDelete"
-              onClick={() => {
-                handleDelete(diario.id);
+        <section className="sales-list-container">
+          {ventas.map((diario) => (
+            <div
+              key={diario.id}
+              className="sales-item"
+              style={{
+                backgroundColor: diario.id % 2 === 0 ? "lightgrey" : "white",
               }}
             >
-              X
+              <h3>{diario.nombre}</h3>
+              <p>$ {diario.valor}</p>
+
+              <button
+                className="button-delete"
+                onClick={() => {
+                  handleDelete(diario.id);
+                }}
+              >
+                X
+              </button>
+            </div>
+          ))}
+
+          <div className="sales-summary-container">
+            <p>
+              <strong>Total for the day: </strong>
+              {totalVenta ? `$ ${totalVenta}` : "No sales yet"}
+            </p>
+            <button
+              onClick={() => {
+                handleDeleteAll();
+              }}
+            >
+              Clear Sales
             </button>
           </div>
-        ))}
-
-        <div className="contenedor-total">
-          <p>
-            <strong>Total del día: </strong>
-            {totalVenta ? `$ ${totalVenta}` : "Todavía no hay ventas"}
-          </p>
-        </div>
-
-        <div className="contenedor-button">
-          <button
-            onClick={() => {
-              handleDeleteAll();
-            }}
-          >
-            Limpiar venta
-          </button>
-        </div>
-      </section>
+        </section>
+      </div>
     </>
   );
 }
