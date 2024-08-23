@@ -119,19 +119,27 @@ export function Ventas() {
       <div className="sales-management-container">
         <section className="sales-input-container">
           <form method="post" onSubmit={handleSubmit}>
+            <label htmlFor="articulo">Sale Name</label>
             <input
               ref={articuloRef}
               type="text"
+              id="articulo"
               name="articulo"
               placeholder="Enter sale name"
             />
+
+            <label htmlFor="valor">Value</label>
             <input
               type="number"
               ref={valorRef}
+              id="valor"
               name="valor"
               placeholder="Value"
             />
-            <button type="submit">Add Sale</button>
+
+            <button type="submit" className="button">
+              Add Sale
+            </button>
           </form>
         </section>
 
@@ -146,9 +154,8 @@ export function Ventas() {
             >
               <h3>{diario.nombre}</h3>
               <p>$ {diario.valor}</p>
-
               <button
-                className="button-delete"
+                className="button-delete button"
                 onClick={() => {
                   handleDelete(diario.id);
                 }}
@@ -158,19 +165,21 @@ export function Ventas() {
             </div>
           ))}
 
-          <div className="sales-summary-container">
+         {ventas.length > 0 ? ( <div className="sales-summary-container">
             <p>
               <strong>Total for the day: </strong>
               {totalVenta ? `$ ${totalVenta}` : "No sales yet"}
             </p>
+
             <button
+              className="button"
               onClick={() => {
                 handleDeleteAll();
               }}
             >
-              Clear Sales
+              <span className="lable">Clear all</span>
             </button>
-          </div>
+          </div>) : null}
         </section>
       </div>
     </>
