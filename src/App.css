@@ -41,16 +41,37 @@ nav ul li a {
 }
 
 /* Inventario */
-.contenedor-articulo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
-  gap: 16px;
-  margin: auto;
+.form-inventory form{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2em;
+  height: auto;
+  padding: 1em;
+}
+
+.form-inventory form input {
+  display: block;
+  border: solid 1px red;
+  width: 25%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  background-color: transparent;
+}
+
+.form-inventory form button {
+  width: 20%;
 }
 
 .div-articulo {
-  width: 50%;
-  margin: auto;
+  padding: 1em;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1em;
+  border-radius: 10px;
 }
 
 .div-articulo h2 {
@@ -60,14 +81,45 @@ nav ul li a {
 
 .div-articulo p {
   text-align: start;
-  padding: 0 1em;
+  padding: .5em 0;
 }
 
 .containers-modifiers {
   display: flex;
-  flex-direction: column;
-  gap: 1em;
+  margin: auto;
+  background-color:#D3D3D3;
+  padding: .5em;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.containers-modifiers button {
   width: 25%;
+  font-size: .8em;
+}
+
+.containers-modifiers input {
+  display: block;
+  width: 25%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  color: black;
+  border-bottom: 2px solid black;
+  outline: none;
+  background-color: transparent;
+}
+
+/* Para navegadores basados en Webkit (Chrome, Safari) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Para navegadores basados en Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 /* Ventas */

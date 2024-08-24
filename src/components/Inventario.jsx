@@ -74,7 +74,7 @@ export function Inventario() {
         setArticulos(datosArticulos);
       })
       .catch((error) => {
-        console.error(error.message)
+        console.error(error.message);
       });
   }, [shouldRefresh]);
 
@@ -123,41 +123,43 @@ export function Inventario() {
         setArticulos(datosArticulos);
       })
       .catch((error) => {
-        console.error(error.message)
+        console.error(error.message);
       });
   }, [shouldRefresh]);
 
   const mostrarInformacion = () => {
     return articulos.map((articulo, id) => (
       <div key={id}>
-        <h2>Título: {articulo.nombre}</h2>
-        <p>Codigo: {articulo.codigoBarras}</p>
-        <p>Entraron: {articulo.stock}</p>
-        <p>Quedan: {articulo.restante}</p>
+        <h2>{articulo.nombre}</h2>
+        <p><strong>Codigo:</strong> {articulo.codigoBarras}</p>
+        <p><strong>Entraron:</strong> {articulo.stock}</p>
+        <p><strong>Quedan:</strong> {articulo.restante}</p>
 
         <div className="containers-modifiers">
           <button
-            className="modifier-delete"
+            className="modifier-delete button"
             onClick={() => {
               handleDelete(articulo.id);
             }}
           >
             Borrar elemento
           </button>
+
           <button
-            className="modifier-modify-quantity"
+            className="modifier-modify-quantity button"
             onClick={() => {
               updateSell(sellUpdateRef.current.value, articulo.id);
-              sellUpdateRef.current.value = ''
+              sellUpdateRef.current.value = "";
             }}
           >
             Modificar cantidad
           </button>
+
           <input
             type="number"
             ref={sellUpdateRef}
             name="sellUpdateInput"
-            placeholder="Ingresa el nuevo valor"
+            placeholder="Nuevo valor"
           />
         </div>
         <hr />
@@ -221,10 +223,10 @@ export function Inventario() {
             placeholder="Vendido"
           />
 
-          <button>Cargar articulo</button>
+          <button className="button">Cargar articulo</button>
         </form>
       </section>
-      <section className="contenedor-articulo">
+      <section>
         <div className="div-articulo">{mostrarInformacion()}</div>
       </section>
     </>
