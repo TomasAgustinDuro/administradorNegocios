@@ -4,7 +4,7 @@ export function Navbar() {
   return (
     <>
       <header>
-        <img src="#" alt="Logo del negocio" />
+        <h1>Los mareados</h1>
         <nav>
           <ul>
             <li>

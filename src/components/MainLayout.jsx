@@ -1,7 +1,7 @@
 import { Navbar } from "./shared/Navbar";
 import { Devoluciones } from "./Devoluciones";
 import { Inventario } from "./Inventario";
-import { Ventas } from "./Ventas"
+import { Ventas } from "./Ventas";
 import { Route, Routes } from "react-router-dom";
 
 function MainLayout() {
