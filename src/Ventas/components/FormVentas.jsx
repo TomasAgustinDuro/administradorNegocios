@@ -1,4 +1,4 @@
-import { useFormVentas } from "../Hooks/UseFormVentas";
+import { useFormVentas } from "../hooks/useFormVentas";
 
 function FormVentas() {
   const { handleSubmit, articuloRef, valorRef } = useFormVentas();

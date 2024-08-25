@@ -1,6 +1,6 @@
 import { useRef, useContext } from "react";
-import fetchData from "../services/fetchData";
-import { ShouldRefreshContext } from "./ShouldRefreshContext";
+import fetchData from "../../services/fetchData";
+import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 
 function FormularioInventario() {
   const {setShouldRefresh } = useContext(ShouldRefreshContext);

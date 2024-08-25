@@ -1,8 +1,8 @@
 import { useRef, useContext } from "react";
-import { ShouldRefreshContext } from "../components/ShouldRefreshContext";
+import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 
 export function useFormVentas() {
-  const { shouldRefresh, setShouldRefresh } = useContext(ShouldRefreshContext);
+  const {setShouldRefresh } = useContext(ShouldRefreshContext);
   const articuloRef = useRef(null);
   const valorRef = useRef(null);
 

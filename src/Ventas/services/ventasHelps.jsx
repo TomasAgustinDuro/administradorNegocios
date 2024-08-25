@@ -1,14 +1,9 @@
-import {useContext} from "react";
-import { ShouldRefreshContext } from "./ShouldRefreshContext";
-
 function ventasHelps(diarioId = null) {
-  const { shouldRefresh, setShouldRefresh } = useContext(ShouldRefreshContext);
-
-  const url = diarioId
+ const url = diarioId
     ? `http://localhost:8000/diarios/api/diarios/${diarioId}/`
     : "http://localhost:8000/diarios/api/diarios/eliminar_todos/";
 
-  fetch(url, {
+  return fetch(url, {
     method: "DELETE",
   })
     .then((response) => {
@@ -19,20 +14,21 @@ function ventasHelps(diarioId = null) {
             : "Todos los artículos eliminados con éxito"
         );
 
-        if (!diarioId) {
-          setVentas([]); // Reinicia el estado para eliminar todas las ventas del UI
-          setTotalVenta(0);
-        }
 
-        setShouldRefresh((prev) => !prev);
+        return {
+          success: true,
+          clearAll: !diarioId, // Indica si se eliminaron todos los artículos
+        };
       } else {
         console.error(
           `Error al eliminar ${diarioId ? "diario" : "todos los artículos"}`
         );
+        return { success: false };
       }
     })
     .catch((error) => {
       console.error("Error en la solicitud:", error);
+      return { success: false };
     });
 }
 

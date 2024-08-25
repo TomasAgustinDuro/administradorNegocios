@@ -1,6 +1,6 @@
 import "./App.css";
-import MainLayout from "./components/MainLayout";
-import { ShouldRefreshProvider } from "./components/ShouldRefreshContext";
+import MainLayout from "./MainLayout";
+import { ShouldRefreshProvider } from "./Context/ShouldRefreshContext";
 
 function App() {
   return (

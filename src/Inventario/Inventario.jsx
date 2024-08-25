@@ -1,13 +1,13 @@
 // import { CargaInventario } from "./CargaInventario";
 import React, { useState, useEffect, useRef, useContext } from "react";
 import fetchData from "../services/fetchData";
-import FormularioInventario from "./FormularioInventario";
-import { updateSell } from "./updateSell";
-import { ShouldRefreshContext } from "./ShouldRefreshContext";
+import FormularioInventario from "./components/FormularioInventario";
+import { updateSell } from "./adapters/updateSell";
+import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
 
 export function Inventario() {
   const [articulos, setArticulos] = useState([]);
-  const { shouldRefresh } = useContext(ShouldRefreshContext);
+  const { shouldRefresh, setShouldRefresh } = useContext(ShouldRefreshContext);
 
   const sellUpdateRefs = useRef({});
 
@@ -92,6 +92,7 @@ export function Inventario() {
                       sellUpdateRefs.current[articulo.id].current.value;
                     updateSell(valor, articulo.id);
                     sellUpdateRefs.current[articulo.id].current.value = "";
+                    setShouldRefresh((prev) => !prev);
                   }}
                 >
                   Modificar cantidad

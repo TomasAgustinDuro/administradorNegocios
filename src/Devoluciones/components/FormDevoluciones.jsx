@@ -1,8 +1,9 @@
-import {useContext} from "react";
-import { ShouldRefreshContext } from "./ShouldRefreshContext";
+import { useContext } from "react";
+import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
+import fetchData from "../../services/fetchData";
 
 function FormDevoluciones() {
-const { setShouldRefresh } = useContext(ShouldRefreshContext);
+  const { setShouldRefresh } = useContext(ShouldRefreshContext);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -12,20 +13,14 @@ const { setShouldRefresh } = useContext(ShouldRefreshContext);
 
     const url = "http://localhost:8000/diarios/api/devoluciones/";
 
-    fetch(url, {
-      method: form.method,
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Response status: ${response.status}`);
-        }
-        setShouldRefresh((prev) => !prev);
-      })
-      .catch((error) => {
-        console.error(error.message);
-      });
-  }
+    fetchData(url, form.method, formData)
+        .then(() => {
+            setShouldRefresh((prev) => !prev);
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
+}
 
   return (
     <>

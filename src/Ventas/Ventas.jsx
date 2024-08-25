@@ -1,40 +1,25 @@
 import { useState, useEffect, useContext } from "react";
-import { ShouldRefreshContext } from "./ShouldRefreshContext";
-import FormVentas from "../components/FormVentas";
+import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
+import FormVentas from "./components/FormVentas";
 import fetchData from "../services/fetchData";
+import ventasHelps from "./services/ventasHelps";
 
 export function Ventas() {
   const [ventas, setVentas] = useState([]);
   const [totalVenta, setTotalVenta] = useState(0);
-  const { shouldRefresh, setShouldRefresh } = useContext(ShouldRefreshContext);
+  const { shouldRefresh,setShouldRefresh } = useContext(ShouldRefreshContext);
 
-  function handleDelete(diarioId = null) {
-    const url = diarioId
-      ? `http://localhost:8000/diarios/api/diarios/${diarioId}/`
-      : "http://localhost:8000/diarios/api/diarios/eliminar_todos/";
-  
-    fetchData(url, "DELETE")
-      .then(() => {
-        console.log(
-          diarioId
-            ? `Diario ${diarioId} eliminado con éxito`
-            : "Todos los artículos eliminados con éxito"
-        );
-  
-        if (!diarioId) {
-          setVentas([]); 
-          setTotalVenta(0);
-        }
-  
-        setShouldRefresh((prev) => !prev);
-      })
-      .catch((error) => {
-        console.error(
-          `Error al eliminar ${diarioId ? "diario" : "todos los artículos"}`,
-          error.message
-        );
-      });
-  }
+  const handleDelete = async (diarioId = null) => {
+    const result = await ventasHelps(diarioId);
+
+    if (result.success) {
+      setShouldRefresh((prev) => !prev);
+      if (result.clearAll) {
+        setVentas([]); 
+        setTotalVenta(0);
+      }
+    }
+  };
  
   useEffect(() => {
     const url = "http://localhost:8000/diarios/api/diarios/";

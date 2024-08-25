@@ -1,9 +1,9 @@
 // import devoluciones from "../data/devoluciones.json";
 import { useEffect, useState, useContext } from "react";
 import fetchData from "../services/fetchData";
-import FormDevoluciones from "./FormDevoluciones";
-import { ShouldRefreshContext } from "./ShouldRefreshContext";
-import { DeleteTicket } from "./DeleteTicket";
+import FormDevoluciones from "./components/FormDevoluciones";
+import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
+import { DeleteTicket } from "./adapters/DeleteTicket";
 
 export function Devoluciones() {
   const [devoluciones, setDevoluciones] = useState([]);
@@ -29,6 +29,19 @@ export function Devoluciones() {
       });
   }, [shouldRefresh]);
 
+  const handleDelete = (id) => {
+    DeleteTicket(id)
+      .then(() => {
+        setDevoluciones((prevDevoluciones) =>
+          prevDevoluciones.filter((devolucion) => devolucion.id !== id)
+        );
+        setShouldRefresh((prev) => !prev); // Alterna shouldRefresh para activar useEffect
+      })
+      .catch((error) => {
+        console.error("Error al eliminar el ticket:", error.message);
+      });
+  };
+  
 
   return (
     <>
@@ -57,9 +70,7 @@ export function Devoluciones() {
                   <button
                     className="button"
                     onClick={() => {
-                      DeleteTicket(devolucion.id, devoluciones)
-                      setDevoluciones(devoluciones)
-                      setShouldRefresh((prev) => !prev)
+                      handleDelete(devolucion.id);
                     }}
                   >
                     Borrar
