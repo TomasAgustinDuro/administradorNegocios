@@ -1,9 +1,10 @@
-// import { CargaInventario } from "./CargaInventario";
 import React, { useState, useEffect, useRef, useContext } from "react";
 import fetchData from "../services/fetchData";
 import FormularioInventario from "./components/FormularioInventario";
 import { updateSell } from "./adapters/updateSell";
 import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
+
+import styles from './inventario.module.css' 
 
 export function Inventario() {
   const [articulos, setArticulos] = useState([]);
@@ -50,11 +51,11 @@ export function Inventario() {
 
   return (
     <>
-      <section className="form-inventory">
+      <section className={styles.formInventory}>
         <FormularioInventario />
       </section>
       <section>
-        <div className="div-articulo">
+        <div className={styles.divArticulo}>
           {articulos.map((articulo, id) => (
             <div key={id}>
               <h2>{articulo.nombre}</h2>
@@ -68,9 +69,9 @@ export function Inventario() {
                 <strong>Quedan:</strong> {articulo.restante}
               </p>
 
-              <div className="containers-modifiers">
+              <div className={styles.containersModifiers}>
                 <button
-                  className="modifier-delete button"
+                  className="button"
                   onClick={() => {
                     handleDelete(articulo.id);
                   }}
@@ -86,7 +87,7 @@ export function Inventario() {
                 />
 
                 <button
-                  className="modifier-modify-quantity button"
+                  className="button"
                   onClick={() => {
                     const valor =
                       sellUpdateRefs.current[articulo.id].current.value;

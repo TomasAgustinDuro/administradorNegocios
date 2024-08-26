@@ -1,0 +1,102 @@
+.uploadTicket form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
+
+.customFileUpload {
+  height: 100px;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: space-between;
+  gap: 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #e8e8e8;
+  background-color: #212121;
+  padding: 1.5rem;
+  margin: 1em;
+  border-radius: 10px;
+  box-shadow: 0px 48px 35px -48px #e8e8e8;
+}
+
+.customFileUpload .icon {
+  display: flex;
+  width: 30%;
+  align-items: center;
+  justify-content: center;
+}
+
+.customFileUpload .icon svg {
+  fill: #e8e8e8;
+}
+
+.customFileUpload .text {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+}
+
+.customFileUpload .text span {
+  font-weight: bold;
+  color: #e8e8e8;
+}
+
+.customFileUpload input {
+  display: none;
+}
+
+.ticketDate {
+  display: block;
+  height: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  background-color: transparent;
+}
+
+.tickets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 1em;
+}
+
+.tickets h3 {
+  text-align: center;
+  border: solid 1px red;
+}
+
+.ticket {
+  border: solid 1px black;
+  width: 75%;
+  margin: auto;
+  border-radius: 10px;
+}
+
+.footerTicket {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticket p {
+  margin: 1em;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.ticket img {
+  width: 100%;
+}
+
+.listTickets h3 {
+  text-align: center;
+  margin: 1em;
+}

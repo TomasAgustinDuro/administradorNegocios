@@ -1,0 +1,48 @@
+.container {
+  display: flex;
+  gap: 1em;
+}
+
+.inputContainer {
+  width: 30%;
+  padding: 1em;
+}
+
+.inputContainer form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.inputContainer form input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  background-color: transparent;
+}
+
+.salesItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 1em;
+  align-items: center;
+}
+
+.salesItem > * {
+  width: 30%;
+}
+
+.summaryContainer {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.summaryContainer p {
+  background-color: #056bfa27;
+  padding: 1em;
+}

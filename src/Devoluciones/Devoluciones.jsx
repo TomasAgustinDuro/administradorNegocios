@@ -5,6 +5,8 @@ import FormDevoluciones from "./components/FormDevoluciones";
 import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
 import { DeleteTicket } from "./adapters/DeleteTicket";
 
+import styles from './devoluciones.module.css'
+
 export function Devoluciones() {
   const [devoluciones, setDevoluciones] = useState([]);
   const { shouldRefresh, setShouldRefresh } = useContext(ShouldRefreshContext);
@@ -35,7 +37,7 @@ export function Devoluciones() {
         setDevoluciones((prevDevoluciones) =>
           prevDevoluciones.filter((devolucion) => devolucion.id !== id)
         );
-        setShouldRefresh((prev) => !prev); // Alterna shouldRefresh para activar useEffect
+        setShouldRefresh((prev) => !prev);
       })
       .catch((error) => {
         console.error("Error al eliminar el ticket:", error.message);
@@ -45,15 +47,15 @@ export function Devoluciones() {
 
   return (
     <>
-      <section className="section-upload-ticket">
+      <section className={styles.uploadTicket}>
         <FormDevoluciones />
       </section>
 
-      <section className="tickets-container">
+      <section className={styles.listTickets}>
         {devoluciones.length > 0 ? (
-          <div className="tickets">
+          <div className={styles.tickets}>
             {devoluciones.map((devolucion) => (
-              <div key={devolucion.id} className="ticket">
+              <div key={devolucion.id} className={styles.ticket}>
                 <a
                   href={`${baseUrl}${devolucion.url}`}
                   target="_blank"
@@ -64,7 +66,7 @@ export function Devoluciones() {
                     alt={`Imagen ${devolucion.id}`}
                   />
                 </a>
-                <div className="footer-ticket">
+                <div className={styles.footerTicket}>
                   <p>{devolucion.fecha}</p>
 
                   <button

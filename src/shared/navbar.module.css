@@ -1,0 +1,30 @@
+header {
+    display: flex;
+    background-color:#1a1a1a;
+    padding: 1em;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  header > * {
+    width: 50%;
+  }
+  
+  header ul {
+    display: flex;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+  }
+  
+  header ul > * {
+    text-decoration: none;
+    list-style: none;
+    padding: 0 1em;
+  }
+  
+  nav ul li a {
+    color: white;
+    text-decoration: none;
+  }

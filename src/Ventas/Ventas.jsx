@@ -4,6 +4,8 @@ import FormVentas from "./components/FormVentas";
 import fetchData from "../services/fetchData";
 import ventasHelps from "./services/ventasHelps";
 
+import styles from "./ventas.module.css";
+
 export function Ventas() {
   const [ventas, setVentas] = useState([]);
   const [totalVenta, setTotalVenta] = useState(0);
@@ -39,16 +41,16 @@ export function Ventas() {
 
   return (
     <>
-      <div className="sales-management-container">
-        <section className="sales-input-container">
+      <div className={styles.container}>
+        <section className={styles.inputContainer}>
           <FormVentas />
         </section>
 
-        <section className="sales-list-container">
+        <section className={styles.listContainer}>
           {ventas.map((diario) => (
             <div
               key={diario.id}
-              className="sales-item"
+              className={styles.salesItem}
               style={{
                 backgroundColor: diario.id % 2 === 0 ? "lightgrey" : "white",
               }}
@@ -65,7 +67,7 @@ export function Ventas() {
           ))}
 
           {ventas.length > 0 ? (
-            <div className="sales-summary-container">
+            <div className={styles.sumaryContainer}>
               <p>
                 <strong>Total for the day: </strong>
                 {totalVenta ? `$ ${totalVenta}` : "No sales yet"}

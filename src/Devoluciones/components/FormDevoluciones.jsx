@@ -4,9 +4,11 @@ import fetchData from "../../services/fetchData";
 import { Validator } from "../../Utilities/validator";
 import Modal from "../../modal";
 
+import styles from '../devoluciones.module.css'
+
 function FormDevoluciones() {
   const { setShouldRefresh } = useContext(ShouldRefreshContext);
-  const [errors, setErrors] = useState({}); // Estado para manejar errores
+  const [errors, setErrors] = useState({}); 
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -42,13 +44,12 @@ function FormDevoluciones() {
   return (
     <>
       <form method="POST" encType="multipart/form-data" onSubmit={handleSubmit}>
-        <label htmlFor="file" className="custom-file-upload">
+        <label htmlFor="file" className={styles.customFileUpload}>
           <div className="icon">
             <svg viewBox="0 0 24 24" fill="" xmlns="http://www.w3.org/2000/svg">
-              {/* SVG Content */}
             </svg>
           </div>
-          <div className="text">
+          <div className={styles.text}>
             <span>Click to upload image</span>
           </div>
           <input id="file" type="file" accept="image/*" name="imagen" />
@@ -57,11 +58,11 @@ function FormDevoluciones() {
         <input
           type="date"
           name="fecha"
-          className="ticket-date"
+          className={styles.ticketDate}
           placeholder="¿Qué día es hoy?"
         />
 
-        <button className="button button-upload-image">Cargar imagen</button>
+        <button className="button">Cargar imagen</button>
       </form>
 
      

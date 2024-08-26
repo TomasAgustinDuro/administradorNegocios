@@ -1,0 +1,59 @@
+.formInventory form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2em;
+  height: auto;
+  padding: 1em;
+}
+
+.formInventory form input {
+  display: block;
+  border: solid 1px red;
+  width: 25%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  background-color: transparent;
+}
+
+.divArticulo {
+  padding: 1em;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1em;
+  border-radius: 10px;
+}
+
+.divArticulo h2 {
+  text-align: center;
+  padding: 0 1em;
+}
+
+.divArticulo p {
+  text-align: start;
+  padding: 0.5em 0;
+}
+
+.containersModifiers {
+  display: flex;
+  margin: auto;
+  background-color: #d3d3d3;
+  padding: 0.5em;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.containersModifiers input {
+  display: block;
+  width: 25%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  color: black;
+  border-bottom: 2px solid black;
+  outline: none;
+  background-color: transparent;
+}
