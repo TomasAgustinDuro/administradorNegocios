@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 import fetchData from "../../services/fetchData";
+import { Validator } from "../../Utilities/validator";
 
 function FormDevoluciones() {
   const { setShouldRefresh } = useContext(ShouldRefreshContext);
@@ -11,16 +12,33 @@ function FormDevoluciones() {
     const form = e.target;
     const formData = new FormData(form);
 
+    const data = {
+      imagen: formData.get("imagen"),
+      fecha: formData.get("fecha"),
+    };
+
+    const errors = Validator(data);
+
+    if (errors.fecha || errors.imagen) {
+      alert(
+        Object.values(errors)
+          .filter((error) => error)
+          .join("\n")
+      );
+      return;
+    }
+
     const url = "http://localhost:8000/diarios/api/devoluciones/";
 
     fetchData(url, form.method, formData)
-        .then(() => {
-            setShouldRefresh((prev) => !prev);
-        })
-        .catch((error) => {
-            console.error(error.message);
-        });
-}
+      .then(() => {
+        form.reset();
+        setShouldRefresh((prev) => !prev);
+      })
+      .catch((error) => {
+        console.error(error.message);
+      });
+  }
 
   return (
     <>

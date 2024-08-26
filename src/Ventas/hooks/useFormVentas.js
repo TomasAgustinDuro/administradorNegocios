@@ -1,5 +1,6 @@
 import { useRef, useContext } from "react";
 import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
+import { Validator } from "../../Utilities/validator";
 
 export function useFormVentas() {
   const {setShouldRefresh } = useContext(ShouldRefreshContext);
@@ -16,6 +17,18 @@ export function useFormVentas() {
       nombre: formData.get("articulo"),
       valor: parseFloat(formData.get("valor")),
     };
+
+    const errors = Validator(data)
+
+    if (errors.nombre) {
+      alert(errors.nombre);
+      return;
+    }
+
+    if (errors.valor) {
+      alert(errors.valor);
+      return;
+    }
 
     postVentas(form.method, data);
     setShouldRefresh((prev) => !prev)
