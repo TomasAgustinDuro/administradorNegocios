@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
 import FormVentas from "./components/FormVentas";
-import fetchData from "../services/fetchData";
+import fetchData from "../Services/fetchData";
 import ventasHelps from "./services/ventasHelps";
 
 import styles from "./ventas.module.css";
@@ -58,7 +58,7 @@ export function Ventas() {
               <h3>{diario.nombre}</h3>
               <p>$ {diario.valor}</p>
               <button
-                className="button-delete button"
+                className="button"
                 onClick={() => handleDelete(diario.id)}
               >
                 X

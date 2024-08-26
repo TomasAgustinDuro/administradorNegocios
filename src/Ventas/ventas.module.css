@@ -25,6 +25,10 @@
   background-color: transparent;
 }
 
+.listContainer{
+  width: 75%;
+}
+
 .salesItem {
   display: flex;
   justify-content: space-between;
@@ -36,13 +40,19 @@
   width: 30%;
 }
 
-.summaryContainer {
+.salesItem button {
+  width: 10%;
+  background-color: #E53935;
+  border: none;
+}
+
+.sumaryContainer {
   display: flex;
   flex-direction: row-reverse;
   justify-content: space-between;
 }
 
-.summaryContainer p {
+.sumaryContainer p {
   background-color: #056bfa27;
   padding: 1em;
 }

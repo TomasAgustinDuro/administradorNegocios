@@ -4,7 +4,7 @@ import FormularioInventario from "./components/FormularioInventario";
 import { updateSell } from "./adapters/updateSell";
 import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
 
-import styles from './inventario.module.css' 
+import styles from "./inventario.module.css";
 
 export function Inventario() {
   const [articulos, setArticulos] = useState([]);
@@ -93,7 +93,7 @@ export function Inventario() {
                       sellUpdateRefs.current[articulo.id].current.value;
                     updateSell(valor, articulo.id);
                     sellUpdateRefs.current[articulo.id].current.value = "";
-                    setShouldRefresh((prev) => !prev);
+                    setShouldRefresh((prev) => !prev); // Alternar el estado
                   }}
                 >
                   Modificar cantidad
