@@ -1,9 +1,10 @@
-import { useRef, useContext } from "react";
+import { useRef, useContext,useState } from "react";
 import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 import { Validator } from "../../Utilities/validator";
 
 export function useFormVentas() {
   const {setShouldRefresh } = useContext(ShouldRefreshContext);
+  const [errors, setErrors] = useState({})
   const articuloRef = useRef(null);
   const valorRef = useRef(null);
 
@@ -17,21 +18,17 @@ export function useFormVentas() {
       nombre: formData.get("articulo"),
       valor: parseFloat(formData.get("valor")),
     };
-
-    const errors = Validator(data)
-
-    if (errors.nombre) {
-      alert(errors.nombre);
-      return;
-    }
-
-    if (errors.valor) {
-      alert(errors.valor);
+  
+    const validationErrors = Validator(data);
+  
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors); 
       return;
     }
 
     postVentas(form.method, data);
     setShouldRefresh((prev) => !prev)
+    setErrors({}); 
     articuloRef.current.value = "";
     valorRef.current.value = "";
   }
@@ -60,5 +57,6 @@ export function useFormVentas() {
     handleSubmit,
     articuloRef,
     valorRef,
+    errors,
   };
 }

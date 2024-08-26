@@ -358,3 +358,15 @@ input[type="number"] {
   border-color: #666666;
   background: #292929;
 }
+
+.error-messages{
+  color: red;
+  border: solid 1px red;
+  width: 50%;
+  background-color: #f8d7da;
+  border-radius: 10px;
+  margin: 1em auto;
+  font-weight: bolder;
+  padding: 1em;
+  text-align: center;
+}

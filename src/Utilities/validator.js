@@ -47,6 +47,8 @@ export function Validator(data) {
       } else if (dateToValidate <= hoy) {
         errors.fecha = "Debe escoger una fecha posterior al día de hoy";
       }
+
+      
     }
   
     if (data.imagen !== undefined) {

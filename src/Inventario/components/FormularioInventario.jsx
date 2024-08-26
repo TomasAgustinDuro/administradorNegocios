@@ -1,10 +1,12 @@
-import { useRef, useContext } from "react";
+import { useRef, useContext,useState } from "react";
 import fetchData from "../../services/fetchData";
 import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 import { Validator } from "../../Utilities/validator";
+import Modal from "../../modal";
 
 function FormularioInventario() {
   const {setShouldRefresh } = useContext(ShouldRefreshContext);
+  const [errors, setErrors] = useState({}); // Estado para manejar errores
 
   const nombreRef = useRef(null);
   const stockRef = useRef(null);
@@ -21,10 +23,10 @@ function FormularioInventario() {
       vendido: parseFloat(vendidoRef.current.value),
     };
 
-    const errors = Validator(formData);
+    const validationErrors = Validator(formData);
 
-    if (errors.nombre || errors.stock || errors.vendido || errors.codigo_barras) {
-      alert(Object.values(errors).filter(error => error).join("\n"));
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors); // Actualizar estado de errores
       return;
     }
 
@@ -32,6 +34,7 @@ function FormularioInventario() {
     fetchData(url, "POST", formData)
       .then(() => {
         setShouldRefresh((prev) => !prev);
+        setErrors({}); 
         nombreRef.current.value = "";
         stockRef.current.value = "";
         codigoBarrasRef.current.value = "";
@@ -62,6 +65,8 @@ function FormularioInventario() {
 
         <button className="button">Cargar articulo</button>
       </form>
+
+      <Modal data={errors} />
     </>
   );
 }
