@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { ShouldRefreshContext } from "../Context/ShouldRefreshContext";
 import FormVentas from "./components/FormVentas";
-import fetchData from "../Services/fetchData.js";
+import fetchData from "../services/fetchData";
 import ventasHelps from "./services/ventasHelps";
 
 import styles from "./ventas.module.css";
