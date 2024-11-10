@@ -1,5 +1,5 @@
 import { useFormVentas } from "../hooks/useFormVentas";
-import Modal from "../../modal";
+import Modal from "../../Modal";
 
 function FormVentas() {
   const { handleSubmit, articuloRef, valorRef, errors } = useFormVentas();
