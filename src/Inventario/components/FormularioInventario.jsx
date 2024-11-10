@@ -2,7 +2,7 @@ import { useRef, useContext,useState } from "react";
 import fetchData from "../../services/fetchData";
 import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 import { Validator } from "../../Utilities/validator";
-import Modal from "../../modal";
+import Modal from "../../Modal";
 
 function FormularioInventario() {
   const {setShouldRefresh } = useContext(ShouldRefreshContext);
