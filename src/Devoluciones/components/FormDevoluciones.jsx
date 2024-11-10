@@ -2,7 +2,7 @@ import { useState, useContext } from "react";
 import { ShouldRefreshContext } from "../../Context/ShouldRefreshContext";
 import fetchData from "../../services/fetchData";
 import { Validator } from "../../Utilities/validator";
-import Modal from "../../modal";
+import Modal from "../../Modal";
 
 import styles from '../devoluciones.module.css'
 
