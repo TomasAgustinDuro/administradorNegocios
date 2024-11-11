@@ -4,7 +4,7 @@ import styles from "./navbar.module.css"
 export function Navbar() {
   return (
     <>
-      <header>
+      <header className={styles.header}>
         <h1>Los mareados</h1>
         <nav>
           <ul>
