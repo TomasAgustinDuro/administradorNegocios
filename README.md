@@ -1,35 +1,67 @@
-# Web App para Gestión de Inventario y Ventas
+# 🗂️ Web App para Gestión de Inventario y Ventas
 
-## Descripción
+**Administrador de Negocios** is a web application designed to manage daily sales, inventory, and reorder tracking for a newspaper and magazine distribution business.
 
-Este proyecto consiste en una web app desarrollada en React para facilitar el registro de inventario, la gestión de ventas diarias y el seguimiento de artículos solicitados nuevamente por la distribuidora de diarios, periódicos, revistas y colecciones.
+Built using **React** for the frontend and **Django** with SQLite for the backend (temporary). The app is under active development and will evolve to a more robust architecture.
 
-## Funcionalidades Actuales
+---
 
-- **Registro de Inventario**: Permite gestionar el inventario de artículos.
-- **Gestión de Ventas Diarias**: Facilita el registro y seguimiento de las ventas realizadas cada día.
-- **Seguimiento de Solicitudes**: Controla los artículos que la distribuidora solicita nuevamente tras cierto tiempo.
+## 📦 Features
 
-## Tecnologías Utilizadas
+- 📋 **Inventory Management**: Add, edit, and track all available items.
+- 💰 **Daily Sales Tracking**: Log sales by date to keep control of daily revenue.
+- 🔁 **Restock Requests**: Track items frequently requested by the distributor.
+
+---
+
+## 🛠️ Tech Stack
 
 - **Frontend**: React
-- **Backend**: Django con SQLite3 (utilizado temporalmente)
-- **Datos**: JSON (actualmente en desarrollo)
+- **Backend**: Django (Python) + SQLite3 *(temporary, for prototyping)*
+- **Data Format**: JSON *(under transition to DB models)*
 
-## Objetivos a Futuro
+---
 
-- **Diseño y Estructuración de Base de Datos**: La próxima semana se comenzará a trabajar en el diseño y la estructura de la base de datos para hacer la aplicación más dinámica y funcional. El backend, que actualmente utiliza SQLite3, será mejorado a futuro para optimizar el rendimiento y la escalabilidad.
-- **Mejoras y Nuevas Funcionalidades**: Implementar nuevas características y mejorar la aplicación en base a feedback y pruebas.
+## 🚧 Roadmap
 
-## Cómo Contribuir
+- 🗃️ **Database Design & Migration**: Upcoming full redesign of DB structure to improve maintainability and scalability.
+- 🧪 **Features & Testing**: Iterative enhancements based on feedback and internal testing.
+- 🌐 **Multi-user support & auth** (planned)
 
-Cualquier feedback, sugerencia o consejo es muy bienvenido. Puedes colaborar con:
-- Revisiones de código
-- Sugerencias de mejoras
-- Informes de errores
+---
 
-## Repositorio
+## 🧠 What I learned
 
-Puedes encontrar el repositorio del proyecto en https://github.com/TomasAgustinDuro/adminitradorNegocios. Ten en cuenta que el proyecto está en desarrollo y pueden quedar cambios por cargar.
+- How to structure a fullstack project with frontend/backend communication.
+- Data modeling for inventory/sales systems.
+- The importance of modularity when handling logic-heavy UI.
+- Bridging between prototyping (JSON) and persistent storage (SQLite → future DB).
 
-¡Agradezco cualquier apoyo y espero que este proyecto mejore la eficiencia en nuestra operación diaria!
+---
+
+## 🤝 How to contribute
+
+Any feedback, suggestion or code review is highly appreciated.
+
+You can help by:
+- Reporting bugs or edge cases
+- Reviewing code structure or naming
+- Suggesting UX improvements
+
+---
+
+## 📂 Repository
+
+🔗 [GitHub – TomasAgustinDuro/adminitradorNegocios](https://github.com/TomasAgustinDuro/adminitradorNegocios)
+
+> **Note:** This project is in active development. Expect structural changes.
+
+---
+
+## 🙋‍♂️ Author
+
+Built to solve a real need in day-to-day operations by  
+[Tomás Duro](https://tommasdev.vercel.app) – Buenos Aires 🇦🇷
+
+---
+
