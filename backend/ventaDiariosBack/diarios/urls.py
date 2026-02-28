@@ -9,5 +9,5 @@ router.register(r'ventas', VentaViewSet)
 router.register(r'devoluciones', DevolucionViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls))
+    path('', include(router.urls))
 ]
