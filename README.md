@@ -1,67 +1,233 @@
-# 🗂️ Web App para Gestión de Inventario y Ventas
+# Administrador de Negocios — Venta de Diarios
 
-**Administrador de Negocios** is a web application designed to manage daily sales, inventory, and reorder tracking for a newspaper and magazine distribution business.
-
-Built using **React** for the frontend and **Django** with SQLite for the backend (temporary). The app is under active development and will evolve to a more robust architecture.
+Sistema de gestión para negocios de venta de diarios y revistas. Permite registrar ventas diarias, manejar el inventario de productos y gestionar devoluciones con imagen.
 
 ---
 
-## 📦 Features
+## Descripción general
 
-- 📋 **Inventory Management**: Add, edit, and track all available items.
-- 💰 **Daily Sales Tracking**: Log sales by date to keep control of daily revenue.
-- 🔁 **Restock Requests**: Track items frequently requested by the distributor.
+La aplicación está pensada para que un kiosco o negocio de venta de diarios pueda:
 
----
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React
-- **Backend**: Django (Python) + SQLite3 *(temporary, for prototyping)*
-- **Data Format**: JSON *(under transition to DB models)*
+- Registrar qué diarios/revistas se vendieron en el día y a qué precio.
+- Controlar el inventario de productos con código de barras (stock, vendido, restante).
+- Registrar devoluciones de mercadería adjuntando una foto como evidencia.
 
 ---
 
-## 🚧 Roadmap
+## Arquitectura
 
-- 🗃️ **Database Design & Migration**: Upcoming full redesign of DB structure to improve maintainability and scalability.
-- 🧪 **Features & Testing**: Iterative enhancements based on feedback and internal testing.
-- 🌐 **Multi-user support & auth** (planned)
+El proyecto está dividido en dos capas independientes:
 
----
+```
+administradorNegocios/
+├── backend/
+│   └── ventaDiariosBack/       # API REST en Django
+│       ├── diarios/            # App principal: modelos, vistas y URLs
+│       ├── media/              # Archivos subidos (imágenes de devoluciones)
+│       └── ventaDiariosBack/   # Configuración del proyecto Django
+└── src/                        # Frontend en React + Vite
+    ├── Context/                # Contextos globales (React Context API)
+    ├── Devoluciones/           # Módulo de devoluciones
+    └── ...                     # Resto de módulos del frontend
+```
 
-## 🧠 What I learned
-
-- How to structure a fullstack project with frontend/backend communication.
-- Data modeling for inventory/sales systems.
-- The importance of modularity when handling logic-heavy UI.
-- Bridging between prototyping (JSON) and persistent storage (SQLite → future DB).
-
----
-
-## 🤝 How to contribute
-
-Any feedback, suggestion or code review is highly appreciated.
-
-You can help by:
-- Reporting bugs or edge cases
-- Reviewing code structure or naming
-- Suggesting UX improvements
+- **Frontend**: React 18 + Vite. Se comunica con el backend vía HTTP (fetch/axios).
+- **Backend**: Django 5.1 + Django REST Framework. Expone una API REST con JSON.
+- **Base de datos**: SQLite (archivo `db.sqlite3`, local).
+- **Archivos multimedia**: Django sirve las imágenes de devoluciones desde `/media/`.
 
 ---
 
-## 📂 Repository
+## Tecnologías y dependencias
 
-🔗 [GitHub – TomasAgustinDuro/adminitradorNegocios](https://github.com/TomasAgustinDuro/adminitradorNegocios)
+### Frontend (`package.json`)
 
-> **Note:** This project is in active development. Expect structural changes.
+| Paquete | Versión | Rol |
+|---|---|---|
+| `react` | ^18.3.1 | Librería de UI |
+| `react-dom` | ^18.3.1 | Renderizado en el DOM |
+| `react-router-dom` | ^6.26.1 | Ruteo del lado del cliente |
+| `vite` | ^5.4.0 | Bundler y servidor de desarrollo |
+| `@vitejs/plugin-react-swc` | ^3.5.0 | Compilación rápida de React con SWC |
+| `eslint` | ^9.8.0 | Linter de código |
+
+### Backend (Django)
+
+| Paquete | Rol |
+|---|---|
+| `Django 5.1` | Framework web principal |
+| `djangorestframework` | Construcción de la API REST |
+| `django-cors-headers` | Habilita CORS para que el frontend pueda consumir la API |
+| `Pillow` | Procesamiento de imágenes (requerido por `ImageField`) |
+| `SQLite` | Base de datos embebida (sin instalación adicional) |
 
 ---
 
-## 🙋‍♂️ Author
+## Modelos de datos
 
-Built to solve a real need in day-to-day operations by  
-[Tomás Duro](https://tommasdev.vercel.app) – Buenos Aires 🇦🇷
+### `DiarioVendido`
+Representa un diario o revista vendido en el día.
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `nombre` | CharField(255) | Nombre del diario/revista |
+| `valor` | IntegerField | Precio de venta (no puede ser negativo) |
+
+### `Inventario`
+Controla el stock de un producto identificado por código de barras.
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `nombre` | CharField(255) | Nombre del producto |
+| `codigo_barras` | CharField(255, unique) | Código de barras único |
+| `stock` | IntegerField | Cantidad total recibida |
+| `vendido` | IntegerField | Cantidad vendida acumulada |
+| `restante` | IntegerField | Stock restante (`stock - vendido`) |
+
+### `Devolucion`
+Registra una devolución con su imagen de evidencia.
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `imagen` | ImageField | Foto de la devolución (guardada en `/media/devoluciones/`) |
+| `fecha` | DateField | Fecha de la devolución |
 
 ---
 
+## Endpoints de la API
+
+La URL base del backend es `http://localhost:8000`.
+
+### Diarios vendidos
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/diarios/api/diarios/` | Lista todos los diarios vendidos |
+| `POST` | `/diarios/api/diarios/` | Registra un nuevo diario vendido |
+| `GET` | `/diarios/api/diarios/<id>/` | Detalle de un diario |
+| `PUT` | `/diarios/api/diarios/<id>/` | Actualiza un diario |
+| `DELETE` | `/diarios/api/diarios/<id>/` | Elimina un diario |
+| `DELETE` | `/diarios/api/diarios/eliminar_todos/` | Elimina todos los registros de ventas |
+
+**Body POST/PUT:**
+```json
+{
+  "nombre": "La Nación",
+  "valor": 1500
+}
+```
+
+### Inventario
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/diarios/api/inventarios/` | Lista todos los productos del inventario |
+| `POST` | `/diarios/api/inventarios/` | Crea un nuevo producto |
+| `GET` | `/diarios/api/inventarios/<id>/` | Detalle de un producto |
+| `PUT` | `/diarios/api/inventarios/<id>/` | Actualiza stock o ventas de un producto |
+| `DELETE` | `/diarios/api/inventarios/<id>/` | Elimina un producto |
+
+**Body POST:**
+```json
+{
+  "nombre": "Revista Gente",
+  "codigo_barras": "7891234560001",
+  "stock": 50,
+  "vendido": 0
+}
+```
+
+**Body PUT** (todos los campos son opcionales):
+```json
+{
+  "stock": 60,
+  "vendido": 5
+}
+```
+> Nota: el campo `vendido` en PUT es **incremental** — suma al valor existente.
+
+### Devoluciones
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/diarios/api/devoluciones/` | Lista todas las devoluciones |
+| `POST` | `/diarios/api/devoluciones/` | Registra una nueva devolución |
+| `GET` | `/diarios/api/devoluciones/<id>/` | Detalle de una devolución |
+| `PUT` | `/diarios/api/devoluciones/<id>/` | Actualiza la fecha de una devolución |
+| `DELETE` | `/diarios/api/devoluciones/<id>/` | Elimina una devolución |
+
+**Body POST** (`multipart/form-data`):
+```
+imagen: <archivo de imagen>
+fecha: 2024-08-15
+```
+
+---
+
+## Instalación local
+
+### Requisitos previos
+
+- Python 3.10+
+- Node.js 18+
+- npm 9+
+
+### 1. Clonar el repositorio
+
+```bash
+git clone <url-del-repo>
+cd administradorNegocios
+```
+
+### 2. Configurar el backend
+
+```bash
+# Entrar al directorio del proyecto Django
+cd backend/ventaDiariosBack
+
+# Crear y activar el entorno virtual
+python -m venv venv
+
+# En Windows:
+venv\Scripts\activate
+
+# Instalar dependencias
+pip install django djangorestframework django-cors-headers Pillow
+
+# Aplicar las migraciones
+python manage.py migrate
+
+# (Opcional) Crear un superusuario para el panel de admin
+python manage.py createsuperuser
+
+# Levantar el servidor de desarrollo
+python manage.py runserver
+```
+
+El backend queda disponible en `http://localhost:8000`.
+
+### 3. Configurar el frontend
+
+Abrí una nueva terminal desde la raíz del proyecto:
+
+```bash
+# Desde la raíz del proyecto
+npm install
+
+# Levantar el servidor de desarrollo
+npm run dev
+```
+
+El frontend queda disponible en `http://localhost:5173`.
+
+---
+
+## Uso
+
+1. Con ambos servidores corriendo, abrí `http://localhost:5173` en el navegador.
+2. Desde la interfaz podés:
+   - **Ventas del día**: registrar los diarios vendidos con nombre y precio.
+   - **Inventario**: agregar productos con código de barras y actualizar su stock y ventas.
+   - **Devoluciones**: subir una foto de la mercadería devuelta junto con la fecha.
+3. La API también puede consumirse directamente desde herramientas como Postman o curl usando los endpoints documentados arriba.
+4. El panel de administración de Django está disponible en `http://localhost:8000/admin/` (requiere superusuario).
