@@ -5,10 +5,23 @@ from django.views.decorators.http import require_http_methods
 from .models import DiarioVendido, Inventario, Devolucion
 import json
 
+
 # Vista para DiarioVendido
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
-def diario_vendido_list(request):
+def diario_vendido_list(request: object) -> JsonResponse:
+    """Lista todos los diarios vendidos o crea uno nuevo.
+
+    GET: Retorna todos los registros de DiarioVendido.
+    POST: Crea un nuevo registro validando nombre y valor.
+
+    Args:
+        request: Objeto HttpRequest de Django.
+
+    Returns:
+        JsonResponse con la lista de diarios (GET) o el nuevo registro (POST).
+        Status 400 si faltan campos requeridos o hay errores de validación.
+    """
     if request.method == 'GET':
         diarios = DiarioVendido.objects.all()
         data = list(diarios.values('id', 'nombre', 'valor'))
@@ -34,7 +47,19 @@ def diario_vendido_list(request):
 
 @csrf_exempt
 @require_http_methods(["GET", "PUT", "DELETE"])
-def diario_vendido_detail(request, pk):
+def diario_vendido_detail(request: object, pk: int) -> JsonResponse | HttpResponse:
+    """Recupera, actualiza o elimina un diario vendido por su ID.
+
+    Args:
+        request: Objeto HttpRequest de Django.
+        pk: Clave primaria del registro DiarioVendido a operar.
+
+    Returns:
+        JsonResponse con los datos del diario (GET/PUT).
+        HttpResponse 204 al eliminar exitosamente.
+        HttpResponse 404 si el registro no existe.
+        JsonResponse con error 400 si la validación falla.
+    """
     try:
         diario = DiarioVendido.objects.get(pk=pk)
     except DiarioVendido.DoesNotExist:
@@ -73,14 +98,37 @@ def diario_vendido_detail(request, pk):
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-def eliminar_ventas(request):
+def eliminar_ventas(request: object) -> HttpResponse:
+    """Elimina todos los registros de DiarioVendido de la base de datos.
+
+    Permite al operador limpiar el registro de ventas al cierre del día.
+
+    Args:
+        request: Objeto HttpRequest de Django.
+
+    Returns:
+        HttpResponse 204 sin contenido tras borrar todos los registros.
+    """
     DiarioVendido.objects.all().delete()
     return HttpResponse(status=204)
+
 
 # Vista para Inventario
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
-def inventario_list(request):
+def inventario_list(request: object) -> JsonResponse:
+    """Lista todos los artículos del inventario o crea uno nuevo.
+
+    GET: Retorna todos los artículos con su stock, vendido y restante.
+    POST: Crea un nuevo artículo validando nombre, código de barras y cantidades.
+
+    Args:
+        request: Objeto HttpRequest de Django.
+
+    Returns:
+        JsonResponse con la lista de artículos (GET) o el nuevo artículo (POST).
+        Status 400 si faltan campos requeridos o hay errores de validación.
+    """
     if request.method == 'GET':
         inventarios = Inventario.objects.all()
         data = list(inventarios.values('id', 'nombre', 'codigo_barras', 'stock', 'vendido', 'restante'))
@@ -119,7 +167,22 @@ def inventario_list(request):
 
 @csrf_exempt
 @require_http_methods(["GET", "PUT", "DELETE"])
-def inventario_detail(request, pk):
+def inventario_detail(request: object, pk: int) -> JsonResponse | HttpResponse:
+    """Recupera, actualiza o elimina un artículo de inventario por su ID.
+
+    En el método PUT, el campo 'vendido' es incremental: se suma al valor
+    existente en lugar de reemplazarlo.
+
+    Args:
+        request: Objeto HttpRequest de Django.
+        pk: Clave primaria del artículo de Inventario a operar.
+
+    Returns:
+        JsonResponse con los datos del artículo (GET/PUT).
+        HttpResponse 204 al eliminar exitosamente.
+        HttpResponse 404 si el artículo no existe.
+        JsonResponse con error 400 si la validación falla.
+    """
     try:
         inventario = Inventario.objects.get(pk=pk)
     except Inventario.DoesNotExist:
@@ -171,7 +234,20 @@ def inventario_detail(request, pk):
 # Vista para Devolucion
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
-def devolucion_list(request):
+def devolucion_list(request: object) -> JsonResponse:
+    """Lista todas las devoluciones registradas o crea una nueva.
+
+    GET: Retorna todas las devoluciones con su imagen (URL relativa) y fecha.
+    POST: Crea una nueva devolución esperando multipart/form-data con
+          los campos 'imagen' (archivo) y 'fecha' (string de fecha).
+
+    Args:
+        request: Objeto HttpRequest de Django.
+
+    Returns:
+        JsonResponse con la lista de devoluciones (GET) o la nueva devolución (POST).
+        Status 400 si faltan campos requeridos o hay errores de validación.
+    """
     if request.method == 'GET':
         devoluciones = Devolucion.objects.all()
         data = [{
@@ -200,7 +276,22 @@ def devolucion_list(request):
 
 @csrf_exempt
 @require_http_methods(["GET", "PUT", "DELETE"])
-def devolucion_detail(request, pk):
+def devolucion_detail(request: object, pk: int) -> JsonResponse | HttpResponse:
+    """Recupera, actualiza o elimina una devolución por su ID.
+
+    El método PUT solo permite actualizar la fecha. La imagen no es modificable
+    una vez creada la devolución.
+
+    Args:
+        request: Objeto HttpRequest de Django.
+        pk: Clave primaria de la Devolucion a operar.
+
+    Returns:
+        JsonResponse con los datos de la devolución (GET/PUT).
+        HttpResponse 204 al eliminar exitosamente.
+        HttpResponse 404 si la devolución no existe.
+        JsonResponse con error 400 si la validación falla.
+    """
     try:
         devolucion = Devolucion.objects.get(pk=pk)
     except Devolucion.DoesNotExist:
