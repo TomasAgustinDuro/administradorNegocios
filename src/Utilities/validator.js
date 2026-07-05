@@ -1,3 +1,20 @@
+/**
+ * Valida los campos de un formulario según las reglas de negocio del sistema.
+ *
+ * Cada campo es validado solo si está presente en el objeto recibido,
+ * permitiendo validaciones parciales (útil en formularios de edición).
+ *
+ * @param {Object} data - Objeto con los campos a validar. Puede incluir:
+ *   @param {string}  [data.nombre]        - Nombre del artículo (sin números).
+ *   @param {string}  [data.codigo_barras] - Código de barras (solo dígitos, positivo).
+ *   @param {number}  [data.valor]         - Precio de venta (número no negativo).
+ *   @param {number}  [data.stock]         - Cantidad en stock (número no negativo).
+ *   @param {number}  [data.vendido]       - Cantidad vendida (número no negativo).
+ *   @param {string}  [data.fecha]         - Fecha en formato parseable por Date (debe ser futura).
+ *   @param {File}    [data.imagen]        - Archivo de imagen (JPEG, PNG o WebP).
+ * @returns {Object} Objeto con los errores encontrados. Clave = nombre del campo,
+ *   valor = mensaje de error. Retorna objeto vacío si no hay errores.
+ */
 export function Validator(data) {
     const containsNumber = /\d/;
     const errors = {};
