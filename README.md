@@ -21,7 +21,14 @@ El proyecto está dividido en dos capas independientes:
 ```
 administradorNegocios/
 ├── backend/
-│   └── ventaDiariosBack/       # API REST en Django
+│   ├── app/                    # API REST en FastAPI (nuevo)
+│   │   ├── main.py            # Punto de entrada de la aplicación FastAPI
+│   │   ├── config.py          # Configuración por variables de entorno
+│   │   ├── routers/           # Controladores HTTP (endpoints)
+│   │   ├── schemas/           # Esquemas Pydantic (validación de datos)
+│   │   ├── services/          # Lógica de negocio
+│   │   └── repositories/     # Acceso a datos
+│   └── ventaDiariosBack/       # API REST en Django (legacy)
 │       ├── diarios/            # App principal: modelos, vistas y URLs
 │       ├── media/              # Archivos subidos (imágenes de devoluciones)
 │       └── ventaDiariosBack/   # Configuración del proyecto Django
@@ -32,8 +39,9 @@ administradorNegocios/
 ```
 
 - **Frontend**: React 18 + Vite. Se comunica con el backend vía HTTP (fetch/axios).
-- **Backend**: Django 5.1 + Django REST Framework. Expone una API REST con JSON.
-- **Base de datos**: SQLite (archivo `db.sqlite3`, local).
+- **Backend (FastAPI)**: API REST nueva basada en FastAPI. Expone endpoints bajo `/api/v1/`.
+- **Backend (Django — legacy)**: Django 5.1 + Django REST Framework. API REST original con JSON.
+- **Base de datos**: SQLite (archivo `db.sqlite3`, local) para el backend Django.
 - **Archivos multimedia**: Django sirve las imágenes de devoluciones desde `/media/`.
 
 ---
@@ -51,7 +59,17 @@ administradorNegocios/
 | `@vitejs/plugin-react-swc` | ^3.5.0 | Compilación rápida de React con SWC |
 | `eslint` | ^9.8.0 | Linter de código |
 
-### Backend (Django)
+### Backend — FastAPI (`backend/requirements.txt`)
+
+| Paquete | Versión | Rol |
+|---|---|---|
+| `fastapi` | 0.139.0 | Framework web principal |
+| `uvicorn` | 0.50.0 | Servidor ASGI |
+| `pydantic` | 2.13.4 | Validación de datos y esquemas |
+| `pydantic-settings` | 2.14.2 | Configuración tipada por variables de entorno |
+| `python-dotenv` | 1.2.2 | Carga de `.env` |
+
+### Backend — Django (legacy)
 
 | Paquete | Rol |
 |---|---|
@@ -96,7 +114,47 @@ Registra una devolución con su imagen de evidencia.
 
 ## Endpoints de la API
 
-La URL base del backend es `http://localhost:8000`.
+---
+
+### Backend FastAPI (`http://localhost:8000`)
+
+#### Productos (`/api/v1/products`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/v1/products/` | Lista todos los productos |
+| `POST` | `/api/v1/products/` | Crea un nuevo producto |
+| `GET` | `/api/v1/products/<id>` | Detalle de un producto |
+| `PUT` | `/api/v1/products/<id>` | Actualiza parcialmente un producto |
+| `DELETE` | `/api/v1/products/<id>` | Elimina un producto |
+
+**Body POST:**
+```json
+{
+  "name": "Revista Gente",
+  "price": 1500.0,
+  "quantity": 50
+}
+```
+
+**Body PUT** (todos los campos son opcionales):
+```json
+{
+  "name": "Nuevo nombre",
+  "price": 1800.0,
+  "quantity": 45
+}
+```
+
+#### Health Check
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/v1/health` | Estado del servicio |
+
+---
+
+### Backend Django — legacy (`http://localhost:8000`)
 
 ### Diarios vendidos
 
@@ -179,7 +237,28 @@ git clone <url-del-repo>
 cd administradorNegocios
 ```
 
-### 2. Configurar el backend
+### 2. Configurar el backend (FastAPI)
+
+```bash
+# Entrar al directorio del backend
+cd backend
+
+# Crear y activar el entorno virtual
+python -m venv .venv
+
+# En Windows:
+.venv\Scripts\activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Levantar el servidor de desarrollo
+uvicorn app.main:app --reload
+```
+
+El backend FastAPI queda disponible en `http://localhost:8000`.
+
+### 3. Configurar el backend Django (legacy)
 
 ```bash
 # Entrar al directorio del proyecto Django
@@ -204,9 +283,9 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-El backend queda disponible en `http://localhost:8000`.
+El backend Django queda disponible en `http://localhost:8000` (correr uno u otro, no ambos en el mismo puerto).
 
-### 3. Configurar el frontend
+### 4. Configurar el frontend
 
 Abrí una nueva terminal desde la raíz del proyecto:
 
