@@ -146,6 +146,42 @@ Registra una devolución con su imagen de evidencia.
 }
 ```
 
+#### Ventas (`/api/v1/sales`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/v1/sales/` | Registra una nueva venta |
+
+**Body POST:**
+```json
+{
+  "items": [
+    { "product_id": 1, "quantity": 3 }
+  ]
+}
+```
+
+#### Movimientos de inventario (`/api/v1/movements`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/v1/movements/` | Lista movimientos (filtrable por `product_id` o `date`) |
+| `POST` | `/api/v1/movements/` | Registra un movimiento de inventario |
+
+**Body POST:**
+```json
+{
+  "product_id": 1,
+  "type": "in",
+  "quantity": 10,
+  "reason": "compra a proveedor"
+}
+```
+
+**Query params GET:**
+- `product_id` (int, opcional): filtra por producto.
+- `date` (datetime, opcional): filtra por fecha exacta.
+
 #### Health Check
 
 | Método | Ruta | Descripción |
