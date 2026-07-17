@@ -1,54 +1,41 @@
-# Administrador de Negocios — Venta de Diarios
+# Administrador de Negocios
 
-Sistema de gestión para negocios de venta de diarios y revistas. Permite registrar ventas diarias, manejar el inventario de productos y gestionar devoluciones con imagen.
-
----
-
-## Descripción general
-
-La aplicación está pensada para que un kiosco o negocio de venta de diarios pueda:
-
-- Registrar qué diarios/revistas se vendieron en el día y a qué precio.
-- Controlar el inventario de productos con código de barras (stock, vendido, restante).
-- Registrar devoluciones de mercadería adjuntando una foto como evidencia.
+Sistema de gestión para negocios. Permite registrar ventas, manejar el inventario de productos y gestionar devoluciones.
 
 ---
 
 ## Arquitectura
 
-El proyecto está dividido en dos capas independientes:
-
 ```
 administradorNegocios/
 ├── backend/
-│   ├── app/                    # API REST en FastAPI (nuevo)
-│   │   ├── main.py            # Punto de entrada de la aplicación FastAPI
+│   ├── app/
+│   │   ├── main.py            # Punto de entrada FastAPI + CORS
 │   │   ├── config.py          # Configuración por variables de entorno
+│   │   ├── database.py        # Engine SQLAlchemy, sesión y get_db()
+│   │   ├── models.py          # Modelos SQLAlchemy (tablas)
 │   │   ├── routers/           # Controladores HTTP (endpoints)
-│   │   ├── schemas/           # Esquemas Pydantic (validación de datos)
+│   │   ├── schemas/           # Esquemas Pydantic (validación)
 │   │   ├── services/          # Lógica de negocio
-│   │   └── repositories/     # Acceso a datos
-│   └── ventaDiariosBack/       # API REST en Django (legacy)
-│       ├── diarios/            # App principal: modelos, vistas y URLs
-│       ├── media/              # Archivos subidos (imágenes de devoluciones)
-│       └── ventaDiariosBack/   # Configuración del proyecto Django
+│   │   └── repositories/      # Acceso a datos (queries)
+│   └── tests/
+│       └── unit/              # Tests unitarios (unittest)
 └── src/                        # Frontend en React + Vite
     ├── Context/                # Contextos globales (React Context API)
+    ├── Inventario/             # Módulo de inventario
     ├── Devoluciones/           # Módulo de devoluciones
-    └── ...                     # Resto de módulos del frontend
+    └── shared/                 # Componentes compartidos (Navbar)
 ```
 
-- **Frontend**: React 18 + Vite. Se comunica con el backend vía HTTP (fetch/axios).
-- **Backend (FastAPI)**: API REST nueva basada en FastAPI. Expone endpoints bajo `/api/v1/`.
-- **Backend (Django — legacy)**: Django 5.1 + Django REST Framework. API REST original con JSON.
-- **Base de datos**: SQLite (archivo `db.sqlite3`, local) para el backend Django.
-- **Archivos multimedia**: Django sirve las imágenes de devoluciones desde `/media/`.
+- **Frontend**: React 18 + Vite. Se comunica con el backend vía HTTP.
+- **Backend**: FastAPI + SQLAlchemy. API REST bajo `/api/v1/`.
+- **Base de datos**: SQLite en desarrollo (`dev.db`), PostgreSQL en producción (solo cambiar `DATABASE_URL`).
 
 ---
 
-## Tecnologías y dependencias
+## Tecnologías
 
-### Frontend (`package.json`)
+### Frontend
 
 | Paquete | Versión | Rol |
 |---|---|---|
@@ -56,205 +43,95 @@ administradorNegocios/
 | `react-dom` | ^18.3.1 | Renderizado en el DOM |
 | `react-router-dom` | ^6.26.1 | Ruteo del lado del cliente |
 | `vite` | ^5.4.0 | Bundler y servidor de desarrollo |
-| `@vitejs/plugin-react-swc` | ^3.5.0 | Compilación rápida de React con SWC |
-| `eslint` | ^9.8.0 | Linter de código |
 
-### Backend — FastAPI (`backend/requirements.txt`)
+### Backend
 
 | Paquete | Versión | Rol |
 |---|---|---|
-| `fastapi` | 0.139.0 | Framework web principal |
+| `fastapi` | 0.139.0 | Framework web |
 | `uvicorn` | 0.50.0 | Servidor ASGI |
-| `pydantic` | 2.13.4 | Validación de datos y esquemas |
-| `pydantic-settings` | 2.14.2 | Configuración tipada por variables de entorno |
+| `sqlalchemy` | 2.x | ORM y acceso a base de datos |
+| `pydantic` | 2.13.4 | Validación de datos |
+| `pydantic-settings` | 2.14.2 | Configuración tipada |
 | `python-dotenv` | 1.2.2 | Carga de `.env` |
-
-### Backend — Django (legacy)
-
-| Paquete | Rol |
-|---|---|
-| `Django 5.1` | Framework web principal |
-| `djangorestframework` | Construcción de la API REST |
-| `django-cors-headers` | Habilita CORS para que el frontend pueda consumir la API |
-| `Pillow` | Procesamiento de imágenes (requerido por `ImageField`) |
-| `SQLite` | Base de datos embebida (sin instalación adicional) |
 
 ---
 
 ## Modelos de datos
 
-### `DiarioVendido`
-Representa un diario o revista vendido en el día.
+### Product
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `nombre` | CharField(255) | Nombre del diario/revista |
-| `valor` | IntegerField | Precio de venta (no puede ser negativo) |
+| `id` | Integer (PK) | Identificador único |
+| `name` | String | Nombre del producto |
+| `price` | Float | Precio de venta |
+| `quantity` | Integer | Stock disponible |
 
-### `Inventario`
-Controla el stock de un producto identificado por código de barras.
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `nombre` | CharField(255) | Nombre del producto |
-| `codigo_barras` | CharField(255, unique) | Código de barras único |
-| `stock` | IntegerField | Cantidad total recibida |
-| `vendido` | IntegerField | Cantidad vendida acumulada |
-| `restante` | IntegerField | Stock restante (`stock - vendido`) |
-
-### `Devolucion`
-Registra una devolución con su imagen de evidencia.
+### Sales
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `imagen` | ImageField | Foto de la devolución (guardada en `/media/devoluciones/`) |
-| `fecha` | DateField | Fecha de la devolución |
+| `id` | Integer (PK) | Identificador único |
+| `total` | Float | Monto total de la venta |
+| `date` | DateTime | Fecha y hora de la venta |
+| `status` | String | Estado (`active` / `cancelled`) |
+
+### SaleItem
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | Integer (PK) | Identificador único |
+| `sale_id` | Integer (FK) | Referencia a la venta |
+| `product_id` | Integer (FK) | Referencia al producto |
+| `quantity` | Integer | Cantidad vendida |
+
+### Inventory (Movimientos)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | Integer (PK) | Identificador único |
+| `product_id` | Integer (FK) | Referencia al producto |
+| `type` | String | Tipo (`entry`, `sale`, `adjustment`, `loss`) |
+| `quantity` | Integer | Cantidad del movimiento |
+| `reason` | String (nullable) | Motivo del movimiento |
+| `date` | DateTime | Fecha y hora del registro |
 
 ---
 
 ## Endpoints de la API
 
----
-
-### Backend FastAPI (`http://localhost:8000`)
-
-#### Productos (`/api/v1/products`)
+### Productos (`/api/v1/products`)
 
 | Método | Ruta | Descripción |
 |---|---|---|
 | `GET` | `/api/v1/products/` | Lista todos los productos |
 | `POST` | `/api/v1/products/` | Crea un nuevo producto |
-| `GET` | `/api/v1/products/<id>` | Detalle de un producto |
-| `PUT` | `/api/v1/products/<id>` | Actualiza parcialmente un producto |
-| `DELETE` | `/api/v1/products/<id>` | Elimina un producto |
+| `GET` | `/api/v1/products/{id}` | Detalle de un producto |
+| `PUT` | `/api/v1/products/{id}` | Actualiza parcialmente un producto |
+| `DELETE` | `/api/v1/products/{id}` | Elimina un producto |
 
-**Body POST:**
-```json
-{
-  "name": "Revista Gente",
-  "price": 1500.0,
-  "quantity": 50
-}
-```
-
-**Body PUT** (todos los campos son opcionales):
-```json
-{
-  "name": "Nuevo nombre",
-  "price": 1800.0,
-  "quantity": 45
-}
-```
-
-#### Ventas (`/api/v1/sales`)
+### Ventas (`/api/v1/sales`)
 
 | Método | Ruta | Descripción |
 |---|---|---|
+| `GET` | `/api/v1/sales/` | Lista todas las ventas |
 | `POST` | `/api/v1/sales/` | Registra una nueva venta |
+| `GET` | `/api/v1/sales/{id}` | Detalle de una venta |
+| `POST` | `/api/v1/sales/{id}/cancel` | Cancela una venta |
 
-**Body POST:**
-```json
-{
-  "items": [
-    { "product_id": 1, "quantity": 3 }
-  ]
-}
-```
-
-#### Movimientos de inventario (`/api/v1/movements`)
+### Movimientos de inventario (`/api/v1/movements`)
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/api/v1/movements/` | Lista movimientos (filtrable por `product_id` o `date`) |
-| `POST` | `/api/v1/movements/` | Registra un movimiento de inventario |
+| `GET` | `/api/v1/movements/` | Lista movimientos (filtrable por `product_id`) |
+| `POST` | `/api/v1/movements/` | Registra un movimiento |
 
-**Body POST:**
-```json
-{
-  "product_id": 1,
-  "type": "in",
-  "quantity": 10,
-  "reason": "compra a proveedor"
-}
-```
-
-**Query params GET:**
-- `product_id` (int, opcional): filtra por producto.
-- `date` (datetime, opcional): filtra por fecha exacta.
-
-#### Health Check
+### Health Check
 
 | Método | Ruta | Descripción |
 |---|---|---|
 | `GET` | `/api/v1/health` | Estado del servicio |
-
----
-
-### Backend Django — legacy (`http://localhost:8000`)
-
-### Diarios vendidos
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/diarios/api/diarios/` | Lista todos los diarios vendidos |
-| `POST` | `/diarios/api/diarios/` | Registra un nuevo diario vendido |
-| `GET` | `/diarios/api/diarios/<id>/` | Detalle de un diario |
-| `PUT` | `/diarios/api/diarios/<id>/` | Actualiza un diario |
-| `DELETE` | `/diarios/api/diarios/<id>/` | Elimina un diario |
-| `DELETE` | `/diarios/api/diarios/eliminar_todos/` | Elimina todos los registros de ventas |
-
-**Body POST/PUT:**
-```json
-{
-  "nombre": "La Nación",
-  "valor": 1500
-}
-```
-
-### Inventario
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/diarios/api/inventarios/` | Lista todos los productos del inventario |
-| `POST` | `/diarios/api/inventarios/` | Crea un nuevo producto |
-| `GET` | `/diarios/api/inventarios/<id>/` | Detalle de un producto |
-| `PUT` | `/diarios/api/inventarios/<id>/` | Actualiza stock o ventas de un producto |
-| `DELETE` | `/diarios/api/inventarios/<id>/` | Elimina un producto |
-
-**Body POST:**
-```json
-{
-  "nombre": "Revista Gente",
-  "codigo_barras": "7891234560001",
-  "stock": 50,
-  "vendido": 0
-}
-```
-
-**Body PUT** (todos los campos son opcionales):
-```json
-{
-  "stock": 60,
-  "vendido": 5
-}
-```
-> Nota: el campo `vendido` en PUT es **incremental** — suma al valor existente.
-
-### Devoluciones
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| `GET` | `/diarios/api/devoluciones/` | Lista todas las devoluciones |
-| `POST` | `/diarios/api/devoluciones/` | Registra una nueva devolución |
-| `GET` | `/diarios/api/devoluciones/<id>/` | Detalle de una devolución |
-| `PUT` | `/diarios/api/devoluciones/<id>/` | Actualiza la fecha de una devolución |
-| `DELETE` | `/diarios/api/devoluciones/<id>/` | Elimina una devolución |
-
-**Body POST** (`multipart/form-data`):
-```
-imagen: <archivo de imagen>
-fecha: 2024-08-15
-```
 
 ---
 
@@ -266,83 +143,51 @@ fecha: 2024-08-15
 - Node.js 18+
 - npm 9+
 
-### 1. Clonar el repositorio
+### 1. Backend
 
 ```bash
-git clone <url-del-repo>
-cd administradorNegocios
-```
-
-### 2. Configurar el backend (FastAPI)
-
-```bash
-# Entrar al directorio del backend
 cd backend
-
-# Crear y activar el entorno virtual
 python -m venv .venv
 
-# En Windows:
+# Windows:
 .venv\Scripts\activate
 
-# Instalar dependencias
 pip install -r requirements.txt
-
-# Levantar el servidor de desarrollo
 uvicorn app.main:app --reload
 ```
 
-El backend FastAPI queda disponible en `http://localhost:8000`.
+El backend queda en `http://localhost:8000`.
+Documentación interactiva en `http://localhost:8000/docs`.
 
-### 3. Configurar el backend Django (legacy)
-
-```bash
-# Entrar al directorio del proyecto Django
-cd backend/ventaDiariosBack
-
-# Crear y activar el entorno virtual
-python -m venv venv
-
-# En Windows:
-venv\Scripts\activate
-
-# Instalar dependencias
-pip install django djangorestframework django-cors-headers Pillow
-
-# Aplicar las migraciones
-python manage.py migrate
-
-# (Opcional) Crear un superusuario para el panel de admin
-python manage.py createsuperuser
-
-# Levantar el servidor de desarrollo
-python manage.py runserver
-```
-
-El backend Django queda disponible en `http://localhost:8000` (correr uno u otro, no ambos en el mismo puerto).
-
-### 4. Configurar el frontend
-
-Abrí una nueva terminal desde la raíz del proyecto:
+### 2. Frontend
 
 ```bash
 # Desde la raíz del proyecto
 npm install
-
-# Levantar el servidor de desarrollo
 npm run dev
 ```
 
-El frontend queda disponible en `http://localhost:5173`.
+El frontend queda en `http://localhost:5173`.
 
 ---
 
-## Uso
+## Variables de entorno
 
-1. Con ambos servidores corriendo, abrí `http://localhost:5173` en el navegador.
-2. Desde la interfaz podés:
-   - **Ventas del día**: registrar los diarios vendidos con nombre y precio.
-   - **Inventario**: agregar productos con código de barras y actualizar su stock y ventas.
-   - **Devoluciones**: subir una foto de la mercadería devuelta junto con la fecha.
-3. La API también puede consumirse directamente desde herramientas como Postman o curl usando los endpoints documentados arriba.
-4. El panel de administración de Django está disponible en `http://localhost:8000/admin/` (requiere superusuario).
+Definir en `backend/.env` o como variables del sistema:
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `APP_ENV` | `local` | Entorno (`local`, `production`) |
+| `APP_PORT` | `8000` | Puerto del servidor |
+| `DATABASE_URL` | `sqlite:///./dev.db` | URL de conexión a la DB |
+
+Para producción: `DATABASE_URL=postgresql://user:pass@host:5432/db_name`
+
+---
+
+## Tests
+
+```bash
+cd backend
+.venv\Scripts\python.exe -m unittest discover -s tests/unit -p "test_*.py" -v
+```
