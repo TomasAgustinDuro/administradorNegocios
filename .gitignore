@@ -29,6 +29,7 @@ dist-ssr/
 
 # Database
 *.sqlite3
+*.db
 
 # Environment files
 .env

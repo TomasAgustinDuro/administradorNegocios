@@ -3,33 +3,33 @@
 Contiene la lógica de negocio de productos, desacoplada del transporte HTTP.
 Las funciones reciben datos puros y lanzan ValueError si algo falla.
 """
-from app.services.inventory import create_movement_record
+from datetime import datetime
 
-def create_product_service(data, products_store: list[dict]) -> dict:
-    """Crea un nuevo producto y lo almacena.
+from sqlalchemy.orm import Session
+
+from app.repositories.products import (
+    find_product_by_id,
+    create_product,
+    update_product,
+    delete_product,
+)
+from app.repositories.inventory import create_movement
+
+def create_product_service(data, db: Session) -> dict:
+    """Crea un nuevo producto y lo persiste en la base de datos.
 
     Args:
         data: Objeto con name, price y quantity del producto.
-        products_store: Lista de productos existentes.
+        db: Sesión activa de SQLAlchemy.
 
     Returns:
-        Diccionario con el producto creado (incluye id generado).
+        Instancia de Product creada.
     """
-    new_id = len(products_store) + 1
-
-    new_product = {
-        "id": new_id,
-        "name": data.name,
-        "price": data.price,
-        "quantity": data.quantity,
-    }
-
-    products_store.append(new_product)
-    return new_product
+    return create_product(data, db)
 
 
 def modify_product_service(
-    product_id: int, data, products_store: list[dict], movements_store: list[dict]
+    product_id: int, data, db: Session
 ) -> dict:
     """Actualiza parcialmente un producto existente.
 
@@ -39,55 +39,53 @@ def modify_product_service(
 
     Args:
         product_id: ID del producto a actualizar.
-        data: Objeto con los campos a modificar.
-        products_store: Lista de productos existentes.
-        movements_store: Lista de movimientos de inventario donde se
-            registra el ajuste cuando cambia la cantidad.
+        data: Objeto Pydantic con los campos a modificar.
+        db: Sesión activa de SQLAlchemy.
 
     Returns:
-        Diccionario con el producto actualizado.
+        Instancia de Product actualizada.
 
     Raises:
         ValueError: Si el producto no existe.
     """
-    producto = next(
-        (item for item in products_store if item["id"] == product_id), None
-    )
-
-
+    producto = find_product_by_id(product_id, db)
 
     if not producto:
         raise ValueError(f"Product {product_id} not found")
 
     update_data = data.model_dump(exclude_unset=True)
 
-    for field, value in update_data.items():
-        producto[field] = value
+    if "quantity" in update_data:
+        create_movement(
+            {
+                "product_id": producto.id,
+                "type": "adjustment",
+                "quantity": update_data["quantity"],
+                "reason": "update product",
+                "date": datetime.now(),
+            },
+            db,
+        )
 
-        if field == "quantity":
-            create_movement_record(producto['id'], "adjustment", value, "modify product", movements_store)
-
-    return producto
+    return update_product(producto, update_data, db)
 
 
 def get_specific_product_service(
-    product_id: int, products_store: list[dict]
+    product_id: int, db: Session
 ) -> dict:
     """Obtiene un producto específico por su ID.
 
     Args:
         product_id: ID del producto a consultar.
-        products_store: Lista de productos existentes.
+        db: Sesión activa de SQLAlchemy.
 
     Returns:
-        Diccionario con los datos del producto.
+        Instancia de Product encontrada.
 
     Raises:
         ValueError: Si el producto no existe.
     """
-    producto = next(
-        (item for item in products_store if item["id"] == product_id), None
-    )
+    producto = find_product_by_id(product_id, db)
 
     if not producto:
         raise ValueError(f"Product {product_id} not found")
@@ -96,22 +94,20 @@ def get_specific_product_service(
 
 
 def delete_product_service(
-    product_id: int, products_store: list[dict]
+    product_id: int, db: Session
 ) -> None:
-    """Elimina un producto del almacén por su ID.
+    """Elimina un producto de la base de datos por su ID.
 
     Args:
         product_id: ID del producto a eliminar.
-        products_store: Lista de productos existentes.
+        db: Sesión activa de SQLAlchemy.
 
     Raises:
         ValueError: Si el producto no existe.
     """
-    producto = next(
-        (item for item in products_store if item["id"] == product_id), None
-    )
-
+    producto = find_product_by_id(product_id, db)
+    
     if not producto:
         raise ValueError(f"Product {product_id} not found")
 
-    products_store.remove(producto)
+    return delete_product(producto, db)

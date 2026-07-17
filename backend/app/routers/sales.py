@@ -11,28 +11,28 @@ Endpoints disponibles:
   - POST   /api/v1/sales/{id}/cancel   → Cancelar una venta
 """
 
-from fastapi import APIRouter, HTTPException
-
+from fastapi import APIRouter, HTTPException,Depends
 from app.schemas.sales import SaleResponse, SalesCreateRequest
-from app.stores import products_store, sales_store, movements_store
 from app.services.sales import (
     create_sale_service,
     list_sales_service,
     cancel_sale_service,
     get_sale_by_id_service,
 )
+from sqlalchemy.orm import Session
+from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/sales", tags=["Sales"])
 
 
 @router.get("/", response_model=list[SaleResponse])
-def list_sales():
+def list_sales(db: Session = Depends(get_db)):
     """Retorna todas las ventas registradas (activas y canceladas)."""
-    return list_sales_service(sales_store)
+    return list_sales_service(db)
 
 
 @router.post("/", response_model=SaleResponse, status_code=201)
-def create_sale(sale_data: SalesCreateRequest):
+def create_sale(sale_data: SalesCreateRequest, db: Session = Depends(get_db)):
     """Registra una nueva venta calculando el total a partir de los ítems.
 
     Args:
@@ -42,13 +42,13 @@ def create_sale(sale_data: SalesCreateRequest):
         HTTPException 404: Si algún product_id no existe en el catálogo.
     """
     try:
-        return create_sale_service(sale_data, sales_store, products_store, movements_store)
+        return create_sale_service(sale_data, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
 
 
 @router.post("/{sale_id}/cancel", response_model=SaleResponse, status_code=200)
-def cancel_sale(sale_id: int):
+def cancel_sale(sale_id: int, db: Session = Depends(get_db)):
     """Cancela una venta existente cambiando su status a 'cancelled'.
 
     Args:
@@ -59,13 +59,13 @@ def cancel_sale(sale_id: int):
         HTTPException 400: Si la venta ya fue cancelada previamente.
     """
     try:
-        return cancel_sale_service(sale_id, sales_store, products_store, movements_store)
+        return cancel_sale_service(sale_id, db)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
 
 
 @router.get("/{sale_id}", response_model=SaleResponse, status_code=200)
-def get_sale_by_id(sale_id: int):
+def get_sale_by_id(sale_id: int, db: Session = Depends(get_db)):
     """Obtiene una venta específica por su ID.
 
     Args:
@@ -75,6 +75,6 @@ def get_sale_by_id(sale_id: int):
         HTTPException 404: Si la venta no existe.
     """
     try:
-        return get_sale_by_id_service(sale_id, sales_store)
+        return get_sale_by_id_service(sale_id, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))

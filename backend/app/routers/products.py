@@ -21,18 +21,20 @@ from app.services.products import (
     get_specific_product_service,
     delete_product_service
 )
-from app.stores import products_store, movements_store
+from app.models import Product
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/products", tags=["Products"])
 
 @router.get("/", response_model=list[ProductResponse])
-def list_products():
+def list_products(db: Session = Depends(get_db)):
     """Retorna todos los productos registrados en el catálogo."""
-    return products_store
-
+    return db.query(Product).all()
 
 @router.post("/", response_model=ProductResponse, status_code=201)
-def create_product(product_data: ProductCreateRequest):
+def create_product(product_data: ProductCreateRequest, db:Session = Depends(get_db)):
     """Crea un nuevo producto en el catálogo.
 
     Args:
@@ -42,12 +44,12 @@ def create_product(product_data: ProductCreateRequest):
         HTTPException 404: Si ocurre un error de validación de negocio.
     """
     try:
-        return create_product_service(product_data, products_store)
+        return create_product_service(product_data, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
 
 @router.put("/{product_id}", response_model=ProductResponse, status_code=200)
-def modify_product(product_id: int, product_data: ProductUpdateRequest):
+def modify_product(product_id: int, product_data: ProductUpdateRequest, db:Session = Depends(get_db)):
     """Actualiza parcialmente un producto existente.
 
     Args:
@@ -58,13 +60,13 @@ def modify_product(product_id: int, product_data: ProductUpdateRequest):
         HTTPException 404: Si el producto no existe.
     """
     try:
-        return modify_product_service(product_id, product_data, products_store, movements_store)
+        return modify_product_service(product_id, product_data, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
     
 
 @router.get("/{product_id}", response_model=ProductResponse, status_code=200)
-def get_specific_product(product_id: int):
+def get_specific_product(product_id: int, db:Session = Depends(get_db)):
     """Obtiene un producto específico por su ID.
 
     Args:
@@ -74,12 +76,12 @@ def get_specific_product(product_id: int):
         HTTPException 404: Si el producto no existe.
     """
     try:
-        return get_specific_product_service(product_id, products_store)
+        return get_specific_product_service(product_id, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
 
 @router.delete("/{product_id}", status_code=204)
-def delete_product(product_id: int):
+def delete_product(product_id: int, db:Session = Depends(get_db)):
     """Elimina un producto del almacén por su ID.
 
     Args:
@@ -89,6 +91,6 @@ def delete_product(product_id: int):
         HTTPException 404: Si el producto no existe en el almacén.
     """
     try:
-        return delete_product_service(product_id, products_store)
+        return delete_product_service(product_id, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))

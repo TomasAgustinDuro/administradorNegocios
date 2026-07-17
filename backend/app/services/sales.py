@@ -6,11 +6,14 @@ El router se encarga de traducir esos errores a respuestas HTTP.
 """
 
 from datetime import datetime
-from app.services.inventory import create_movement_record
+from app.repositories.inventory import create_movement
+from app.repositories.sales import create_sale, cancel_sale, list_sales, find_sale_by_id
+from app.repositories.products import find_product_by_id
+from sqlalchemy.orm import Session
 
 
 def create_sale_service(
-    sale_data, sales_store: list[dict], products_store: list[dict], movements_store: list[dict]
+    sale_data, db:Session,
 ) -> dict:
     """Crea una nueva venta calculando el total a partir del catálogo.
 
@@ -31,41 +34,37 @@ def create_sale_service(
         ValueError: Si algún product_id no existe en el catálogo.
         ValueError: Si el stock del producto es insuficiente.
     """
-    new_id = len(sales_store) + 1
     total = 0
 
     for item in sale_data.items:
-        product = next(
-            (p for p in products_store if p["id"] == item.product_id), None
-        )
+        product = find_product_by_id(item.product_id, db)
 
         if not product:
             raise ValueError(f"Product {item.product_id} not found")
-        if not product["quantity"] >= item.quantity:
+        if not product.quantity >= item.quantity:
             raise ValueError(f"Product {item.product_id} not in stock")
 
-        total += product["price"] * item.quantity
+        total += product.price * item.quantity
 
-        product['quantity'] -= item.quantity
+        product.quantity -= item.quantity
 
-        create_movement_record(
-            item.product_id, "sale", item.quantity, "sale", movements_store
+        create_movement(
+            {item.product_id, "sale", item.quantity, "sale"}, db
         )
 
 
     new_sale = {
-        "id": new_id,
-        "items": sale_data.items,
         "total": total,
         "date": datetime.now(),
-        "status": "active",
+        "status": "active"
     }
 
-    sales_store.append(new_sale)
-    return new_sale
+    items_data = [{"product_id": i.product_id, "quantity": i.quantity} for i in sale_data.items]
+
+    return create_sale(new_sale, sale_data.items, db)
 
 
-def list_sales_service(sales_store: list[dict]) -> list[dict]:
+def list_sales_service(db:Session) -> list[dict]:
     """Retorna todas las ventas registradas.
 
     Args:
@@ -74,14 +73,12 @@ def list_sales_service(sales_store: list[dict]) -> list[dict]:
     Returns:
         Lista completa de ventas (activas y canceladas).
     """
-    return sales_store
+    return list_sales(db)
 
 
 def cancel_sale_service(
     sale_id: int,
-    sales_store: list[dict],
-    products_store: list[dict],
-    movements_store: list[dict],
+    db:Session
 ) -> dict:
     """Cancela una venta existente cambiando su status a 'cancelled'.
 
@@ -103,33 +100,28 @@ def cancel_sale_service(
         ValueError: Si la venta ya fue cancelada previamente.
         ValueError: Si algún producto de la venta ya no existe.
     """
-    sale = next((i for i in sales_store if i["id"] == sale_id), None)
+    sale = find_sale_by_id(sale_id, db)
 
     if not sale:
         raise ValueError(f"Sale with id {sale_id} not found")
-    if sale["status"] == "cancelled":
+    if sale.status == "cancelled":
         raise ValueError(f"Sale with id {sale_id} already cancelled")
 
-    for item in sale["items"]:
-        product = next(
-            (p for p in products_store if p["id"] == item.product_id), None
-        )
+    for item in sale.items:
+        product = find_product_by_id(item.product_id, db)
 
         if not product:
             raise ValueError(f"Product {item.product_id} not found")
 
-        product['quantity'] += item.quantity
+        product.quantity += item.quantity
 
-        create_movement_record(
-            item.product_id, "adjustment", item.quantity, "sale cancelled", movements_store
-        )
+        create_movement(
+{"product_id": item.product_id, "type": "sale", "quantity": item.quantity, "reason": "sale", "date": datetime.now()}, db        )
     
-
-    sale["status"] = "cancelled"
-    return sale
+    return cancel_sale(db, sale)
 
 
-def get_sale_by_id_service(sale_id: int, sales_store: list[dict]) -> dict:
+def get_sale_by_id_service(sale_id: int, db:Session) -> dict:
     """Obtiene una venta específica por su ID.
 
     Args:
@@ -142,7 +134,7 @@ def get_sale_by_id_service(sale_id: int, sales_store: list[dict]) -> dict:
     Raises:
         ValueError: Si la venta no existe.
     """
-    sale = next((i for i in sales_store if i["id"] == sale_id), None)
+    sale = find_sale_by_id(sale_id, db)
 
     if not sale:
         raise ValueError(f"Sale with id {sale_id} not found")
