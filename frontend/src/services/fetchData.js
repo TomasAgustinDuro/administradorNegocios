@@ -12,6 +12,7 @@
  *   o null en caso de DELETE exitoso.
  * @throws {Error} Si la respuesta HTTP no es ok (status >= 400).
  */
+
 function fetchData(url, method, body = null) {
     const options = {
         method: method,

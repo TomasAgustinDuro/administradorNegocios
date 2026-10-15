@@ -49,7 +49,14 @@ def create_sale_service(
         product.quantity -= item.quantity
 
         create_movement(
-            {item.product_id, "sale", item.quantity, "sale"}, db
+            {
+                "product_id": item.product_id,
+                "type": "sale",
+                "quantity": item.quantity,
+                "reason": "sale",
+                "date": datetime.now(),
+            },
+            db,
         )
 
 
@@ -61,7 +68,7 @@ def create_sale_service(
 
     items_data = [{"product_id": i.product_id, "quantity": i.quantity} for i in sale_data.items]
 
-    return create_sale(new_sale, sale_data.items, db)
+    return create_sale(new_sale, items_data, db)
 
 
 def list_sales_service(db:Session) -> list[dict]:

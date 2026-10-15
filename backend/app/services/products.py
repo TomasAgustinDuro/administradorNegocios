@@ -25,7 +25,7 @@ def create_product_service(data, db: Session) -> dict:
     Returns:
         Instancia de Product creada.
     """
-    return create_product(data, db)
+    return create_product(data.model_dump(), db)
 
 
 def modify_product_service(

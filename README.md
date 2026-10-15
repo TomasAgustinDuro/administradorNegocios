@@ -1,6 +1,6 @@
 # Administrador de Negocios
 
-Sistema de gestión para negocios. Permite registrar ventas, manejar el inventario de productos y gestionar devoluciones.
+Sistema de gestión para negocios. Permite registrar ventas, manejar el inventario de productos y consultar movimientos de stock.
 
 ---
 
@@ -19,15 +19,19 @@ administradorNegocios/
 │   │   ├── services/          # Lógica de negocio
 │   │   └── repositories/      # Acceso a datos (queries)
 │   └── tests/
-│       └── unit/              # Tests unitarios (unittest)
-└── src/                        # Frontend en React + Vite
-    ├── Context/                # Contextos globales (React Context API)
-    ├── Inventario/             # Módulo de inventario
-    ├── Devoluciones/           # Módulo de devoluciones
-    └── shared/                 # Componentes compartidos (Navbar)
+│       └── unit/              # Tests unitarios (pytest)
+└── frontend/
+    └── src/
+        ├── Products/           # Módulo de productos (listado + formulario)
+        │   └── components/     # ProductForm
+        ├── Ventas/             # Módulo de ventas (listado + formulario)
+        │   └── components/     # VentasForm
+        ├── shared/             # Componentes compartidos (Navbar)
+        ├── services/           # Capa de comunicación HTTP (fetchData)
+        └── Utilities/          # Validadores y helpers
 ```
 
-- **Frontend**: React 18 + Vite. Se comunica con el backend vía HTTP.
+- **Frontend**: React 18 + Vite. CSS Modules para estilos por componente.
 - **Backend**: FastAPI + SQLAlchemy. API REST bajo `/api/v1/`.
 - **Base de datos**: SQLite en desarrollo (`dev.db`), PostgreSQL en producción (solo cambiar `DATABASE_URL`).
 
@@ -42,6 +46,7 @@ administradorNegocios/
 | `react` | ^18.3.1 | Librería de UI |
 | `react-dom` | ^18.3.1 | Renderizado en el DOM |
 | `react-router-dom` | ^6.26.1 | Ruteo del lado del cliente |
+| `prop-types` | ^15.x | Validación de props en runtime |
 | `vite` | ^5.4.0 | Bundler y servidor de desarrollo |
 
 ### Backend
@@ -54,6 +59,7 @@ administradorNegocios/
 | `pydantic` | 2.13.4 | Validación de datos |
 | `pydantic-settings` | 2.14.2 | Configuración tipada |
 | `python-dotenv` | 1.2.2 | Carga de `.env` |
+| `pytest` | latest | Framework de testing |
 
 ---
 
@@ -162,7 +168,7 @@ Documentación interactiva en `http://localhost:8000/docs`.
 ### 2. Frontend
 
 ```bash
-# Desde la raíz del proyecto
+cd frontend
 npm install
 npm run dev
 ```
@@ -173,7 +179,7 @@ El frontend queda en `http://localhost:5173`.
 
 ## Variables de entorno
 
-Definir en `backend/.env` o como variables del sistema:
+### Backend (`backend/.env`)
 
 | Variable | Default | Descripción |
 |---|---|---|
@@ -181,7 +187,11 @@ Definir en `backend/.env` o como variables del sistema:
 | `APP_PORT` | `8000` | Puerto del servidor |
 | `DATABASE_URL` | `sqlite:///./dev.db` | URL de conexión a la DB |
 
-Para producción: `DATABASE_URL=postgresql://user:pass@host:5432/db_name`
+### Frontend (`frontend/.env`)
+
+| Variable | Descripción |
+|---|---|
+| `VITE_API_URL` | URL base del backend (ej: `http://localhost:8000/api/v1`) |
 
 ---
 
@@ -189,5 +199,18 @@ Para producción: `DATABASE_URL=postgresql://user:pass@host:5432/db_name`
 
 ```bash
 cd backend
-.venv\Scripts\python.exe -m unittest discover -s tests/unit -p "test_*.py" -v
+.venv\Scripts\activate
+pytest -q --tb=short
+```
+
+Para correr un módulo específico:
+
+```bash
+pytest tests/unit/test_sales_service.py -q
+```
+
+Con cobertura:
+
+```bash
+pytest --cov=app --cov-report=term-missing -q
 ```
