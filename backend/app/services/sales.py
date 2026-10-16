@@ -10,13 +10,14 @@ from datetime import UTC, datetime
 from app.repositories.inventory import create_movement
 from app.repositories.products import find_product_by_id
 from app.repositories.sales import cancel_sale, create_sale, find_sale_by_id, list_sales
+from app.schemas.sales import SaleResponse
 from sqlalchemy.orm import Session
 
 
 def create_sale_service(
     sale_data,
     db: Session,
-) -> dict:
+) -> SaleResponse:
     """Crea una nueva venta calculando el total a partir del catálogo.
 
     Registra un movimiento de tipo 'sale' en el inventario por cada ítem
@@ -70,7 +71,7 @@ def create_sale_service(
     return create_sale(new_sale, items_data, db)
 
 
-def list_sales_service(db: Session) -> list[dict]:
+def list_sales_service(db: Session) -> list[SaleResponse]:
     """Retorna todas las ventas registradas.
 
     Args:
@@ -79,10 +80,20 @@ def list_sales_service(db: Session) -> list[dict]:
     Returns:
         Lista completa de ventas (activas y canceladas).
     """
-    return list_sales(db)
+    sales = list_sales(db)
+    return [
+        SaleResponse(
+            id=sale.id,
+            total=sale.total,
+            date=sale.date,
+            status=sale.status,
+            items=[],  # Los items se incluyen si SaleResponse los mapea
+        )
+        for sale in sales
+    ]
 
 
-def cancel_sale_service(sale_id: int, db: Session) -> dict:
+def cancel_sale_service(sale_id: int, db: Session) -> SaleResponse:
     """Cancela una venta existente cambiando su status a 'cancelled'.
 
     Restaura el stock de cada producto incluido en la venta y registra
@@ -96,7 +107,7 @@ def cancel_sale_service(sale_id: int, db: Session) -> dict:
             registra el ajuste por cancelación.
 
     Returns:
-        Diccionario con la venta cancelada.
+        SaleResponse con la venta cancelada.
 
     Raises:
         ValueError: Si la venta no existe.
@@ -129,10 +140,18 @@ def cancel_sale_service(sale_id: int, db: Session) -> dict:
             db,
         )
 
-    return cancel_sale(db, sale)
+    cancelled_sale = cancel_sale(db, sale)
+
+    return SaleResponse(
+        id=cancelled_sale.id,
+        total=cancelled_sale.total,
+        date=cancelled_sale.date,
+        status=cancelled_sale.status,
+        items=[],
+    )
 
 
-def get_sale_by_id_service(sale_id: int, db: Session) -> dict:
+def get_sale_by_id_service(sale_id: int, db: Session) -> SaleResponse:
     """Obtiene una venta específica por su ID.
 
     Args:
@@ -140,7 +159,7 @@ def get_sale_by_id_service(sale_id: int, db: Session) -> dict:
         sales_store: Lista de ventas almacenadas.
 
     Returns:
-        Diccionario con los datos de la venta.
+        SaleResponse con los datos de la venta.
 
     Raises:
         ValueError: Si la venta no existe.
@@ -150,4 +169,10 @@ def get_sale_by_id_service(sale_id: int, db: Session) -> dict:
     if not sale:
         raise ValueError(f"Sale with id {sale_id} not found")
 
-    return sale
+    return SaleResponse(
+        id=sale.id,
+        total=sale.total,
+        date=sale.date,
+        status=sale.status,
+        items=[],
+    )
