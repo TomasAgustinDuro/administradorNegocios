@@ -9,32 +9,38 @@ Endpoints disponibles:
   - DELETE /api/v1/products/{id}      → Eliminar un producto
 """
 
-from fastapi import APIRouter, HTTPException
+from app.auth import verify_token
+from app.database import get_db
+from app.models import Product
 from app.schemas.products import (
     ProductCreateRequest,
-    ProductUpdateRequest,
     ProductResponse,
+    ProductUpdateRequest,
 )
 from app.services.products import (
     create_product_service,
-    modify_product_service,
+    delete_product_service,
     get_specific_product_service,
-    delete_product_service
+    modify_product_service,
 )
-from app.models import Product
-from fastapi import Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/products", tags=["Products"])
+
 
 @router.get("/", response_model=list[ProductResponse])
 def list_products(db: Session = Depends(get_db)):
     """Retorna todos los productos registrados en el catálogo."""
     return db.query(Product).all()
 
+
 @router.post("/", response_model=ProductResponse, status_code=201)
-def create_product(product_data: ProductCreateRequest, db:Session = Depends(get_db)):
+def create_product(
+    product_data: ProductCreateRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_token),
+):
     """Crea un nuevo producto en el catálogo.
 
     Args:
@@ -48,8 +54,14 @@ def create_product(product_data: ProductCreateRequest, db:Session = Depends(get_
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
 
+
 @router.put("/{product_id}", response_model=ProductResponse, status_code=200)
-def modify_product(product_id: int, product_data: ProductUpdateRequest, db:Session = Depends(get_db)):
+def modify_product(
+    product_id: int,
+    product_data: ProductUpdateRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_token),
+):
     """Actualiza parcialmente un producto existente.
 
     Args:
@@ -63,10 +75,10 @@ def modify_product(product_id: int, product_data: ProductUpdateRequest, db:Sessi
         return modify_product_service(product_id, product_data, db)
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
-    
+
 
 @router.get("/{product_id}", response_model=ProductResponse, status_code=200)
-def get_specific_product(product_id: int, db:Session = Depends(get_db)):
+def get_specific_product(product_id: int, db: Session = Depends(get_db)):
     """Obtiene un producto específico por su ID.
 
     Args:
@@ -80,8 +92,11 @@ def get_specific_product(product_id: int, db:Session = Depends(get_db)):
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
 
+
 @router.delete("/{product_id}", status_code=204)
-def delete_product(product_id: int, db:Session = Depends(get_db)):
+def delete_product(
+    product_id: int, db: Session = Depends(get_db), _: None = Depends(verify_token)
+):
     """Elimina un producto del almacén por su ID.
 
     Args:

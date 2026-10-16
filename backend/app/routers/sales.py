@@ -11,16 +11,17 @@ Endpoints disponibles:
   - POST   /api/v1/sales/{id}/cancel   → Cancelar una venta
 """
 
-from fastapi import APIRouter, HTTPException,Depends
+from app.auth import verify_token
+from app.database import get_db
 from app.schemas.sales import SaleResponse, SalesCreateRequest
 from app.services.sales import (
-    create_sale_service,
-    list_sales_service,
     cancel_sale_service,
+    create_sale_service,
     get_sale_by_id_service,
+    list_sales_service,
 )
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/sales", tags=["Sales"])
 
@@ -32,7 +33,11 @@ def list_sales(db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=SaleResponse, status_code=201)
-def create_sale(sale_data: SalesCreateRequest, db: Session = Depends(get_db)):
+def create_sale(
+    sale_data: SalesCreateRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_token),
+):
     """Registra una nueva venta calculando el total a partir de los ítems.
 
     Args:
@@ -48,7 +53,9 @@ def create_sale(sale_data: SalesCreateRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/{sale_id}/cancel", response_model=SaleResponse, status_code=200)
-def cancel_sale(sale_id: int, db: Session = Depends(get_db)):
+def cancel_sale(
+    sale_id: int, db: Session = Depends(get_db), _: None = Depends(verify_token)
+):
     """Cancela una venta existente cambiando su status a 'cancelled'.
 
     Args:

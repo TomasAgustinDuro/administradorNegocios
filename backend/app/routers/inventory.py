@@ -11,20 +11,23 @@ Endpoints disponibles:
 
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Depends
+from app.auth import verify_token
+from app.database import get_db
 from app.schemas.inventory import MovementCreateRequest, MovementResponse
 from app.services.inventory import (
     list_movements_service,
     register_movement_service,
 )
-from app.models import Inventory
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/movements", tags=["Inventory"])
 
 
-@router.get("/", response_model=list[MovementResponse], )
+@router.get(
+    "/",
+    response_model=list[MovementResponse],
+)
 def list_movements(db: Session = Depends(get_db), product_id: Optional[int] = None):
     """Lista movimientos de inventario, con filtro opcional por producto.
 
@@ -35,7 +38,11 @@ def list_movements(db: Session = Depends(get_db), product_id: Optional[int] = No
 
 
 @router.post("/", response_model=MovementResponse, status_code=201)
-def register_movement(movement_data: MovementCreateRequest, db: Session = Depends(get_db)):
+def register_movement(
+    movement_data: MovementCreateRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_token),
+):
     """Registra un nuevo movimiento de inventario para un producto.
 
     Args:
