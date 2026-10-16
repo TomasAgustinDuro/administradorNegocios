@@ -4,9 +4,10 @@ Define los contratos de entrada y salida para los endpoints de movimientos
 de inventario (ingresos, egresos, ajustes).
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
 class MovementCreateRequest(BaseModel):
@@ -20,9 +21,9 @@ class MovementCreateRequest(BaseModel):
     """
 
     product_id: int
-    type: str = Field(min_length=1)
+    type: Literal["entry", "sale", "adjustment", "loss"]
     quantity: int = Field(gt=0)
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class MovementResponse(BaseModel):
@@ -41,5 +42,5 @@ class MovementResponse(BaseModel):
     product_id: int
     type: str
     quantity: int
-    reason: Optional[str] = None
+    reason: str | None = None
     date: datetime
