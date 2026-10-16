@@ -13,12 +13,13 @@ from typing import Optional
 
 from app.auth import verify_token
 from app.database import get_db
+from app.exceptions import BusinessLogicError
 from app.schemas.inventory import MovementCreateRequest, MovementResponse
 from app.services.inventory import (
     list_movements_service,
     register_movement_service,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/v1/movements", tags=["Inventory"])
@@ -49,9 +50,13 @@ def register_movement(
         movement_data: Datos del movimiento (product_id, type, quantity, reason).
 
     Raises:
-        HTTPException 404: Si el product_id no existe en el catálogo.
+        BusinessLogicError 400: Si el product_id no existe en el catálogo.
     """
     try:
         return register_movement_service(movement_data, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="MOVEMENT_REGISTRATION_FAILED",
+            http_status=status.HTTP_400_BAD_REQUEST,
+        )

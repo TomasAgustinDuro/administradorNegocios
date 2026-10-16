@@ -13,6 +13,7 @@ Endpoints disponibles:
 
 from app.auth import verify_token
 from app.database import get_db
+from app.exceptions import BusinessLogicError
 from app.schemas.sales import SaleResponse, SalesCreateRequest
 from app.services.sales import (
     cancel_sale_service,
@@ -20,7 +21,7 @@ from app.services.sales import (
     get_sale_by_id_service,
     list_sales_service,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/v1/sales", tags=["Sales"])
@@ -44,17 +45,23 @@ def create_sale(
         sale_data: Lista de ítems vendidos (product_id + quantity).
 
     Raises:
-        HTTPException 404: Si algún product_id no existe en el catálogo.
+        BusinessLogicError 400: Si algún product_id no existe en el catálogo.
     """
     try:
         return create_sale_service(sale_data, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="SALE_CREATION_FAILED",
+            http_status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @router.post("/{sale_id}/cancel", response_model=SaleResponse, status_code=200)
 def cancel_sale(
-    sale_id: int, db: Session = Depends(get_db), _: None = Depends(verify_token)
+    sale_id: int,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_token),
 ):
     """Cancela una venta existente cambiando su status a 'cancelled'.
 
@@ -62,13 +69,16 @@ def cancel_sale(
         sale_id: ID de la venta a cancelar.
 
     Raises:
-        HTTPException 404: Si la venta no existe.
-        HTTPException 400: Si la venta ya fue cancelada previamente.
+        BusinessLogicError 400: Si la venta no existe o ya fue cancelada.
     """
     try:
         return cancel_sale_service(sale_id, db)
     except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="SALE_CANCELLATION_FAILED",
+            http_status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @router.get("/{sale_id}", response_model=SaleResponse, status_code=200)
@@ -79,9 +89,13 @@ def get_sale_by_id(sale_id: int, db: Session = Depends(get_db)):
         sale_id: ID de la venta a consultar.
 
     Raises:
-        HTTPException 404: Si la venta no existe.
+        BusinessLogicError 404: Si la venta no existe.
     """
     try:
         return get_sale_by_id_service(sale_id, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="SALE_NOT_FOUND",
+            http_status=status.HTTP_404_NOT_FOUND,
+        )

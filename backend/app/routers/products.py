@@ -11,6 +11,7 @@ Endpoints disponibles:
 
 from app.auth import verify_token
 from app.database import get_db
+from app.exceptions import BusinessLogicError
 from app.models import Product
 from app.schemas.products import (
     ProductCreateRequest,
@@ -23,7 +24,7 @@ from app.services.products import (
     get_specific_product_service,
     modify_product_service,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/v1/products", tags=["Products"])
@@ -47,12 +48,16 @@ def create_product(
         product_data: Datos del producto (name, price, quantity).
 
     Raises:
-        HTTPException 404: Si ocurre un error de validación de negocio.
+        BusinessLogicError 400: Si ocurre un error de validación de negocio.
     """
     try:
         return create_product_service(product_data, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="PRODUCT_CREATION_FAILED",
+            http_status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @router.put("/{product_id}", response_model=ProductResponse, status_code=200)
@@ -69,12 +74,16 @@ def modify_product(
         product_data: Campos a modificar (solo los enviados se actualizan).
 
     Raises:
-        HTTPException 404: Si el producto no existe.
+        BusinessLogicError 400: Si el producto no existe.
     """
     try:
         return modify_product_service(product_id, product_data, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="PRODUCT_NOT_FOUND",
+            http_status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @router.get("/{product_id}", response_model=ProductResponse, status_code=200)
@@ -85,17 +94,23 @@ def get_specific_product(product_id: int, db: Session = Depends(get_db)):
         product_id: ID del producto a consultar.
 
     Raises:
-        HTTPException 404: Si el producto no existe.
+        BusinessLogicError 404: Si el producto no existe.
     """
     try:
         return get_specific_product_service(product_id, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="PRODUCT_NOT_FOUND",
+            http_status=status.HTTP_404_NOT_FOUND,
+        )
 
 
 @router.delete("/{product_id}", status_code=204)
 def delete_product(
-    product_id: int, db: Session = Depends(get_db), _: None = Depends(verify_token)
+    product_id: int,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_token),
 ):
     """Elimina un producto del almacén por su ID.
 
@@ -103,9 +118,13 @@ def delete_product(
         product_id: Identificador único del producto a eliminar.
 
     Raises:
-        HTTPException 404: Si el producto no existe en el almacén.
+        BusinessLogicError 404: Si el producto no existe en el almacén.
     """
     try:
         return delete_product_service(product_id, db)
     except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+        raise BusinessLogicError(
+            message=str(error),
+            code="PRODUCT_NOT_FOUND",
+            http_status=status.HTTP_404_NOT_FOUND,
+        )
