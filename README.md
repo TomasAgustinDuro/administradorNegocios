@@ -141,6 +141,90 @@ administradorNegocios/
 
 ---
 
+## Autenticación (v1.2.0+)
+
+Los endpoints destructivos (`POST`, `PUT`, `DELETE`) requieren un token JWT válido.
+
+### Generar un token de prueba
+
+```bash
+cd backend
+python generate_token.py
+```
+
+Esto genera un token firmado con `JWT_SECRET`. Úsalo en el header `Authorization: Bearer <token>` en cualquier request.
+
+### Validación del token
+
+- Se valida automáticamente en todos los endpoints destructivos
+- En caso de token inválido o ausente, devuelve `401 Unauthorized`
+
+---
+
+## Cambios principales (v1.2.0)
+
+### ✅ Seguridad
+- **Autenticación en endpoints destructivos**: `POST`, `PUT`, `DELETE` requieren JWT válido
+- **CORS centralizado**: Orígenes permitidos configurables via `CORS_ORIGIN` (env var)
+- **Manejo de errores consistente**: `BusinessLogicError` mapea automáticamente a códigos HTTP (400, 401, 500)
+
+### ✅ Arquitectura
+- **ORM → DTO mapping explícito**: Services mapean entidades SQLAlchemy a esquemas Pydantic (evita exposición de detalles internos)
+- **Type hints completos**: Todas las funciones tipadas (variables de entorno, retornos, parámetros)
+- **Inventory type validation**: Campo `type` validado con `Literal["entry", "sale", "adjustment", "loss"]`
+- **DateTime con timezone**: Todos los timestamps en UTC
+
+### ✅ Testing
+- **Tests refacturizados con mocks**: Usan `@patch` decorators y `Mock(spec=Session)` para aislar lógica
+- **Independencia de fixtures**: Cada test crea sus objetos mock sin estado compartido
+- **Cobertura mejorada**: Tests cubren happy path + escenarios de error
+
+### ✅ Configuración
+- **API URL centralizada**: Frontend carga `VITE_API_URL` desde `.env.local` (dev) o `.env.production` (prod)
+- **Inventory edge case**: Fixed `if product_id:` → `if product_id is not None:` (soporta `product_id=0`)
+
+---
+
+## Tests
+
+```bash
+cd backend
+.venv\Scripts\activate
+pytest -q --tb=short
+```
+
+Para correr un módulo específico:
+
+```bash
+pytest tests/unit/test_sales_service.py -q
+```
+
+Con cobertura:
+
+```bash
+pytest --cov=app --cov-report=term-missing -q
+```
+
+---
+
+## Release Notes
+
+### v1.1.0
+- Autenticación JWT en endpoints destructivos
+- CORS configurables por env var
+- Validación de tipos en movimientos de inventario
+- Manejo centralizado de errores HTTP
+- DateTime con timezone UTC
+
+### v1.2.0
+- ORM → DTO mapping explícito en services
+- Type hints completos en todo el backend
+- Tests refacturizados con mocks
+- API URL centralizada en frontend
+- Edge case fix: inventory product_id==0
+
+---
+
 ## Instalación local
 
 ### Requisitos previos
@@ -174,43 +258,3 @@ npm run dev
 ```
 
 El frontend queda en `http://localhost:5173`.
-
----
-
-## Variables de entorno
-
-### Backend (`backend/.env`)
-
-| Variable | Default | Descripción |
-|---|---|---|
-| `APP_ENV` | `local` | Entorno (`local`, `production`) |
-| `APP_PORT` | `8000` | Puerto del servidor |
-| `DATABASE_URL` | `sqlite:///./dev.db` | URL de conexión a la DB |
-
-### Frontend (`frontend/.env`)
-
-| Variable | Descripción |
-|---|---|
-| `VITE_API_URL` | URL base del backend (ej: `http://localhost:8000/api/v1`) |
-
----
-
-## Tests
-
-```bash
-cd backend
-.venv\Scripts\activate
-pytest -q --tb=short
-```
-
-Para correr un módulo específico:
-
-```bash
-pytest tests/unit/test_sales_service.py -q
-```
-
-Con cobertura:
-
-```bash
-pytest --cov=app --cov-report=term-missing -q
-```
