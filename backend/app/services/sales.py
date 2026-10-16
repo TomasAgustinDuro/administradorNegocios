@@ -5,15 +5,17 @@ Las funciones reciben datos puros y lanzan ValueError si algo falla.
 El router se encarga de traducir esos errores a respuestas HTTP.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
+
 from app.repositories.inventory import create_movement
-from app.repositories.sales import create_sale, cancel_sale, list_sales, find_sale_by_id
 from app.repositories.products import find_product_by_id
+from app.repositories.sales import cancel_sale, create_sale, find_sale_by_id, list_sales
 from sqlalchemy.orm import Session
 
 
 def create_sale_service(
-    sale_data, db:Session,
+    sale_data,
+    db: Session,
 ) -> dict:
     """Crea una nueva venta calculando el total a partir del catálogo.
 
@@ -54,24 +56,21 @@ def create_sale_service(
                 "type": "sale",
                 "quantity": item.quantity,
                 "reason": "sale",
-                "date": datetime.now(),
+                "date": datetime.now(UTC),
             },
             db,
         )
 
+    new_sale = {"total": total, "date": datetime.now(), "status": "active"}
 
-    new_sale = {
-        "total": total,
-        "date": datetime.now(),
-        "status": "active"
-    }
-
-    items_data = [{"product_id": i.product_id, "quantity": i.quantity} for i in sale_data.items]
+    items_data = [
+        {"product_id": i.product_id, "quantity": i.quantity} for i in sale_data.items
+    ]
 
     return create_sale(new_sale, items_data, db)
 
 
-def list_sales_service(db:Session) -> list[dict]:
+def list_sales_service(db: Session) -> list[dict]:
     """Retorna todas las ventas registradas.
 
     Args:
@@ -83,10 +82,7 @@ def list_sales_service(db:Session) -> list[dict]:
     return list_sales(db)
 
 
-def cancel_sale_service(
-    sale_id: int,
-    db:Session
-) -> dict:
+def cancel_sale_service(sale_id: int, db: Session) -> dict:
     """Cancela una venta existente cambiando su status a 'cancelled'.
 
     Restaura el stock de cada producto incluido en la venta y registra
@@ -123,12 +119,20 @@ def cancel_sale_service(
         product.quantity += item.quantity
 
         create_movement(
-{"product_id": item.product_id, "type": "sale", "quantity": item.quantity, "reason": "sale", "date": datetime.now()}, db        )
-    
+            {
+                "product_id": item.product_id,
+                "type": "sale",
+                "quantity": item.quantity,
+                "reason": "sale",
+                "date": datetime.now(),
+            },
+            db,
+        )
+
     return cancel_sale(db, sale)
 
 
-def get_sale_by_id_service(sale_id: int, db:Session) -> dict:
+def get_sale_by_id_service(sale_id: int, db: Session) -> dict:
     """Obtiene una venta específica por su ID.
 
     Args:

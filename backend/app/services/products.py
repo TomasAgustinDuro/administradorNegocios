@@ -3,17 +3,18 @@
 Contiene la lógica de negocio de productos, desacoplada del transporte HTTP.
 Las funciones reciben datos puros y lanzan ValueError si algo falla.
 """
-from datetime import datetime
 
+from datetime import UTC, datetime
+
+from app.repositories.inventory import create_movement
+from app.repositories.products import (
+    create_product,
+    delete_product,
+    find_product_by_id,
+    update_product,
+)
 from sqlalchemy.orm import Session
 
-from app.repositories.products import (
-    find_product_by_id,
-    create_product,
-    update_product,
-    delete_product,
-)
-from app.repositories.inventory import create_movement
 
 def create_product_service(data, db: Session) -> dict:
     """Crea un nuevo producto y lo persiste en la base de datos.
@@ -28,9 +29,7 @@ def create_product_service(data, db: Session) -> dict:
     return create_product(data.model_dump(), db)
 
 
-def modify_product_service(
-    product_id: int, data, db: Session
-) -> dict:
+def modify_product_service(product_id: int, data, db: Session) -> dict:
     """Actualiza parcialmente un producto existente.
 
     Solo modifica los campos que fueron enviados (no None).
@@ -62,7 +61,7 @@ def modify_product_service(
                 "type": "adjustment",
                 "quantity": update_data["quantity"],
                 "reason": "update product",
-                "date": datetime.now(),
+                "date": datetime.now(UTC),
             },
             db,
         )
@@ -70,9 +69,7 @@ def modify_product_service(
     return update_product(producto, update_data, db)
 
 
-def get_specific_product_service(
-    product_id: int, db: Session
-) -> dict:
+def get_specific_product_service(product_id: int, db: Session) -> dict:
     """Obtiene un producto específico por su ID.
 
     Args:
@@ -93,9 +90,7 @@ def get_specific_product_service(
     return producto
 
 
-def delete_product_service(
-    product_id: int, db: Session
-) -> None:
+def delete_product_service(product_id: int, db: Session) -> None:
     """Elimina un producto de la base de datos por su ID.
 
     Args:
@@ -106,7 +101,7 @@ def delete_product_service(
         ValueError: Si el producto no existe.
     """
     producto = find_product_by_id(product_id, db)
-    
+
     if not producto:
         raise ValueError(f"Product {product_id} not found")
 
