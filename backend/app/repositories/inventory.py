@@ -27,10 +27,11 @@ def create_movement(movement_data: dict, db: Session) -> Inventory:
     db.refresh(new_movement)
     return new_movement
 
-def find_all_movements(db: Session, product_id:Optional[int] = None):
+
+def find_all_movements(db: Session, product_id: int | None = None) -> list[Inventory]:
     query = db.query(Inventory)
 
-    if product_id:
-       query = query.filter(Inventory.product_id == product_id)
-    
+    if product_id is not None:
+        query = query.filter(Inventory.product_id == product_id)
+
     return query.all()
