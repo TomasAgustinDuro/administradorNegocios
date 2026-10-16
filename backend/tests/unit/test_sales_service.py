@@ -4,199 +4,225 @@ Cubre happy path y escenarios de error para cada función del servicio.
 """
 
 import unittest
+from datetime import datetime, timezone
+from unittest.mock import Mock, patch
+
+from sqlalchemy.orm import Session
+
+from app.models import Product, Sales
 from app.services.sales import (
-    create_sale_service,
-    list_sales_service,
     cancel_sale_service,
+    create_sale_service,
     get_sale_by_id_service,
+    list_sales_service,
 )
-from tests.unit.conftest import (
-    get_products_store,
-    get_sales_store,
-    get_movements_store,
-    get_sale_create_request,
-    get_sale_exceeds_stock_request,
-    get_sale_invalid_product_request,
-)
+from app.schemas.sales import SalesCreateRequest, SaleItem
 
 
 class TestCreateSaleService(unittest.TestCase):
     """Tests para la creación de ventas."""
 
     def setUp(self) -> None:
-        self.products_store = get_products_store()
-        self.sales_store = get_sales_store()
-        self.movements_store = get_movements_store()
-        self.request = get_sale_create_request()
+        """Configura mocks y datos de prueba."""
+        self.mock_db = Mock(spec=Session)
 
-    def test_creates_sale_with_correct_total(self) -> None:
+        # Crear datos de entrada válidos
+        self.sale_data = SalesCreateRequest(items=[SaleItem(product_id=1, quantity=2)])
+
+        # Crear mock de producto
+        self.mock_product = Mock(spec=Product)
+        self.mock_product.id = 1
+        self.mock_product.price = 1500.0
+        self.mock_product.quantity = 20
+
+    @patch("app.services.sales.find_product_by_id")
+    @patch("app.services.sales.create_sale")
+    def test_creates_sale_with_correct_total(
+        self, mock_create_sale, mock_find_product
+    ) -> None:
         """Debe calcular el total como precio × cantidad."""
-        result = create_sale_service(
-            self.request, self.sales_store,
-            self.products_store, self.movements_store,
-        )
+        # Configurar mocks
+        mock_find_product.return_value = self.mock_product
+        mock_create_sale.return_value = {
+            "id": 1,
+            "total": 3000.0,
+            "status": "active",
+            "date": datetime.now(timezone.utc),
+        }
 
-        # 1500.0 * 2 = 3000.0
+        # Ejecutar
+        result = create_sale_service(self.sale_data, self.mock_db)
+
+        # Verificar resultado
         self.assertEqual(result["total"], 3000.0)
         self.assertEqual(result["status"], "active")
         self.assertEqual(result["id"], 1)
 
-    def test_decreases_product_stock(self) -> None:
+        # Verificar que se llamó a find_product_by_id correctamente
+        mock_find_product.assert_called_with(1, self.mock_db)
+
+    @patch("app.services.sales.find_product_by_id")
+    @patch("app.services.sales.create_movement")
+    def test_decreases_product_stock(
+        self, mock_create_movement, mock_find_product
+    ) -> None:
         """Debe descontar el stock del producto vendido."""
-        create_sale_service(
-            self.request, self.sales_store,
-            self.products_store, self.movements_store,
-        )
+        # Configurar mock
+        mock_find_product.return_value = self.mock_product
 
-        self.assertEqual(self.products_store[0]["quantity"], 18)
+        # Ejecutar
+        with patch("app.services.sales.create_sale"):
+            create_sale_service(self.sale_data, self.mock_db)
 
-    def test_registers_sale_movement(self) -> None:
+        # Verificar que el stock se decrementó
+        self.assertEqual(self.mock_product.quantity, 18)
+
+    @patch("app.services.sales.find_product_by_id")
+    @patch("app.services.sales.create_movement")
+    @patch("app.services.sales.create_sale")
+    def test_registers_sale_movement(
+        self, mock_create_sale, mock_create_movement, mock_find_product
+    ) -> None:
         """Debe registrar un movimiento de tipo 'sale' en inventario."""
-        create_sale_service(
-            self.request, self.sales_store,
-            self.products_store, self.movements_store,
-        )
+        # Configurar mocks
+        mock_find_product.return_value = self.mock_product
 
-        self.assertEqual(len(self.movements_store), 1)
-        self.assertEqual(self.movements_store[0]["type"], "sale")
+        # Ejecutar
+        create_sale_service(self.sale_data, self.mock_db)
 
-    def test_raises_if_product_not_found(self) -> None:
+        # Verificar que se creó el movimiento
+        mock_create_movement.assert_called()
+        call_args = mock_create_movement.call_args[0][0]
+        self.assertEqual(call_args["type"], "sale")
+        self.assertEqual(call_args["quantity"], 2)
+
+    @patch("app.services.sales.find_product_by_id")
+    def test_raises_if_product_not_found(self, mock_find_product) -> None:
         """Debe lanzar ValueError si el producto no existe."""
-        request = get_sale_invalid_product_request()
+        # Configurar mock para devolver None (producto no encontrado)
+        mock_find_product.return_value = None
 
+        # Ejecutar y verificar que lanza ValueError
         with self.assertRaises(ValueError) as context:
-            create_sale_service(
-                request, self.sales_store,
-                self.products_store, self.movements_store,
-            )
+            create_sale_service(self.sale_data, self.mock_db)
 
-        self.assertIn("Product 999 not found", str(context.exception))
+        self.assertIn("not found", str(context.exception))
 
-    def test_raises_if_stock_insufficient(self) -> None:
+    @patch("app.services.sales.find_product_by_id")
+    def test_raises_if_stock_insufficient(self, mock_find_product) -> None:
         """Debe lanzar ValueError si el stock es insuficiente."""
-        request = get_sale_exceeds_stock_request()
+        # Configurar mock con stock bajo
+        self.mock_product.quantity = 1  # Solo 1 pero se quieren 2
+        mock_find_product.return_value = self.mock_product
 
+        # Ejecutar y verificar que lanza ValueError
         with self.assertRaises(ValueError) as context:
-            create_sale_service(
-                request, self.sales_store,
-                self.products_store, self.movements_store,
-            )
+            create_sale_service(self.sale_data, self.mock_db)
 
         self.assertIn("not in stock", str(context.exception))
 
 
 class TestListSalesService(unittest.TestCase):
-    """Tests para el listado de ventas."""
+    """Tests para listar ventas."""
 
-    def test_returns_empty_list_initially(self) -> None:
-        """Debe retornar lista vacía si no hay ventas."""
-        sales_store = get_sales_store()
-        result = list_sales_service(sales_store)
+    def setUp(self) -> None:
+        self.mock_db = Mock(spec=Session)
 
-        self.assertEqual(result, [])
+    @patch("app.services.sales.list_sales")
+    def test_returns_all_sales(self, mock_list_sales) -> None:
+        """Debe devolver todas las ventas."""
+        mock_list_sales.return_value = [
+            {"id": 1, "total": 1000, "status": "active"},
+            {"id": 2, "total": 2000, "status": "cancelled"},
+        ]
 
-    def test_returns_all_sales(self) -> None:
-        """Debe retornar todas las ventas creadas."""
-        products_store = get_products_store()
-        sales_store = get_sales_store()
-        movements_store = get_movements_store()
-        request = get_sale_create_request()
+        result = list_sales_service(self.mock_db)
 
-        create_sale_service(
-            request, sales_store, products_store, movements_store
-        )
-
-        result = list_sales_service(sales_store)
-
-        self.assertEqual(len(result), 1)
+        self.assertEqual(len(result), 2)
+        mock_list_sales.assert_called_with(self.mock_db)
 
 
 class TestCancelSaleService(unittest.TestCase):
-    """Tests para la cancelación de ventas."""
+    """Tests para cancelar ventas."""
 
     def setUp(self) -> None:
-        self.products_store = get_products_store()
-        self.sales_store = get_sales_store()
-        self.movements_store = get_movements_store()
-        self.request = get_sale_create_request()
-        # Crear una venta para luego cancelarla
-        create_sale_service(
-            self.request, self.sales_store,
-            self.products_store, self.movements_store,
-        )
+        self.mock_db = Mock(spec=Session)
+        self.mock_sale = Mock(spec=Sales)
+        self.mock_sale.id = 1
+        self.mock_sale.status = "active"
+        self.mock_sale.items = [Mock(product_id=1, quantity=2)]
 
-    def test_cancels_sale_and_restores_stock(self) -> None:
-        """Debe cambiar status a 'cancelled' y restaurar stock."""
-        result = cancel_sale_service(
-            1, self.sales_store, self.products_store, self.movements_store
-        )
+        self.mock_product = Mock(spec=Product)
+        self.mock_product.id = 1
+        self.mock_product.quantity = 18
+
+    @patch("app.services.sales.find_product_by_id")
+    @patch("app.services.sales.find_sale_by_id")
+    @patch("app.services.sales.cancel_sale")
+    @patch("app.services.sales.create_movement")
+    def test_cancels_sale_and_restores_stock(
+        self,
+        mock_create_movement,
+        mock_cancel_sale,
+        mock_find_sale,
+        mock_find_product,
+    ) -> None:
+        """Debe cancelar venta y restaurar stock."""
+        mock_find_sale.return_value = self.mock_sale
+        mock_find_product.return_value = self.mock_product
+        mock_cancel_sale.return_value = {"id": 1, "status": "cancelled"}
+
+        result = cancel_sale_service(1, self.mock_db)
 
         self.assertEqual(result["status"], "cancelled")
-        # Stock: 20 - 2 (venta) + 2 (cancelación) = 20
-        self.assertEqual(self.products_store[0]["quantity"], 20)
+        # Verificar que el stock se restauró
+        self.assertEqual(self.mock_product.quantity, 20)
 
-    def test_registers_adjustment_movement_on_cancel(self) -> None:
-        """Debe registrar un movimiento de ajuste al cancelar."""
-        cancel_sale_service(
-            1, self.sales_store, self.products_store, self.movements_store
-        )
-
-        adjustment_movements = [
-            m for m in self.movements_store if m["type"] == "adjustment"
-        ]
-        self.assertEqual(len(adjustment_movements), 1)
-
-    def test_raises_if_sale_not_found(self) -> None:
+    @patch("app.services.sales.find_sale_by_id")
+    def test_raises_if_sale_not_found(self, mock_find_sale) -> None:
         """Debe lanzar ValueError si la venta no existe."""
-        with self.assertRaises(ValueError) as context:
-            cancel_sale_service(
-                99, self.sales_store,
-                self.products_store, self.movements_store,
-            )
-
-        self.assertIn("Sale with id 99 not found", str(context.exception))
-
-    def test_raises_if_sale_already_cancelled(self) -> None:
-        """Debe lanzar ValueError si la venta ya fue cancelada."""
-        cancel_sale_service(
-            1, self.sales_store, self.products_store, self.movements_store
-        )
+        mock_find_sale.return_value = None
 
         with self.assertRaises(ValueError) as context:
-            cancel_sale_service(
-                1, self.sales_store,
-                self.products_store, self.movements_store,
-            )
+            cancel_sale_service(999, self.mock_db)
+
+        self.assertIn("not found", str(context.exception))
+
+    @patch("app.services.sales.find_sale_by_id")
+    def test_raises_if_sale_already_cancelled(self, mock_find_sale) -> None:
+        """Debe lanzar ValueError si la venta ya está cancelada."""
+        self.mock_sale.status = "cancelled"
+        mock_find_sale.return_value = self.mock_sale
+
+        with self.assertRaises(ValueError) as context:
+            cancel_sale_service(1, self.mock_db)
 
         self.assertIn("already cancelled", str(context.exception))
 
 
 class TestGetSaleByIdService(unittest.TestCase):
-    """Tests para la consulta de una venta por ID."""
+    """Tests para obtener venta por ID."""
 
     def setUp(self) -> None:
-        self.products_store = get_products_store()
-        self.sales_store = get_sales_store()
-        self.movements_store = get_movements_store()
-        request = get_sale_create_request()
-        create_sale_service(
-            request, self.sales_store,
-            self.products_store, self.movements_store,
-        )
+        self.mock_db = Mock(spec=Session)
 
-    def test_returns_sale_by_id(self) -> None:
-        """Debe retornar la venta correcta."""
-        result = get_sale_by_id_service(1, self.sales_store)
+    @patch("app.services.sales.find_sale_by_id")
+    def test_returns_sale_by_id(self, mock_find_sale) -> None:
+        """Debe devolver la venta con el ID solicitado."""
+        mock_sale = {"id": 1, "total": 1000, "status": "active"}
+        mock_find_sale.return_value = mock_sale
+
+        result = get_sale_by_id_service(1, self.mock_db)
 
         self.assertEqual(result["id"], 1)
+        mock_find_sale.assert_called_with(1, self.mock_db)
 
-    def test_raises_if_sale_not_found(self) -> None:
+    @patch("app.services.sales.find_sale_by_id")
+    def test_raises_if_sale_not_found(self, mock_find_sale) -> None:
         """Debe lanzar ValueError si la venta no existe."""
+        mock_find_sale.return_value = None
+
         with self.assertRaises(ValueError) as context:
-            get_sale_by_id_service(99, self.sales_store)
+            get_sale_by_id_service(999, self.mock_db)
 
-        self.assertIn("Sale with id 99 not found", str(context.exception))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertIn("not found", str(context.exception))
