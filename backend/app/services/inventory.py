@@ -7,16 +7,16 @@ y delegan la persistencia al repositorio.
 
 from sqlalchemy.orm import Session
 from typing import Optional
+
 from app.repositories.products import find_product_by_id
 from app.repositories.inventory import (
     find_all_movements,
     create_movement,
 )
+from app.schemas.inventory import MovementResponse
 
 
-def list_movements_service(
-    db: Session, product_id: Optional[int] = None
-) -> list:
+def list_movements_service(db: Session, product_id: Optional[int] = None) -> list:
     """Lista movimientos de inventario, con filtro opcional.
 
     Args:
@@ -29,9 +29,7 @@ def list_movements_service(
     return find_all_movements(db, product_id)
 
 
-def register_movement_service(
-    movement_data, db: Session
-) -> dict:
+def register_movement_service(movement_data, db: Session) -> MovementResponse:
     """Registra un nuevo movimiento de inventario.
 
     Valida que existan movimientos previos del producto (como proxy
@@ -43,7 +41,7 @@ def register_movement_service(
         db: Sesión activa de SQLAlchemy.
 
     Returns:
-        Instancia Inventory creada.
+        MovementResponse con el movimiento creado.
 
     Raises:
         ValueError: Si el product_id no tiene registros previos.
@@ -51,9 +49,7 @@ def register_movement_service(
     product = find_product_by_id(movement_data.product_id, db)
 
     if not product:
-        raise ValueError(
-            f"Product {movement_data.product_id} not found"
-        )
+        raise ValueError(f"Product {movement_data.product_id} not found")
 
     movement_dict = {
         "product_id": movement_data.product_id,
@@ -62,4 +58,13 @@ def register_movement_service(
         "reason": movement_data.reason,
     }
 
-    return create_movement(movement_dict, db)
+    movement = create_movement(movement_dict, db)
+
+    return MovementResponse(
+        id=movement.id,
+        product_id=movement.product_id,
+        type=movement.type,
+        quantity=movement.quantity,
+        reason=movement.reason,
+        date=movement.date,
+    )

@@ -14,9 +14,11 @@ from app.repositories.products import (
     update_product,
 )
 from sqlalchemy.orm import Session
+from app.models import Product  # ORM
+from app.schemas.products import ProductResponse
 
 
-def create_product_service(data, db: Session) -> dict:
+def create_product_service(data, db: Session) -> ProductResponse:
     """Crea un nuevo producto y lo persiste en la base de datos.
 
     Args:
@@ -26,10 +28,15 @@ def create_product_service(data, db: Session) -> dict:
     Returns:
         Instancia de Product creada.
     """
-    return create_product(data.model_dump(), db)
+
+    product: Product = create_product(data.model_dump(), db)
+
+    return ProductResponse(
+        id=product.id, name=product.name, price=product.price, quantity=product.quantity
+    )
 
 
-def modify_product_service(product_id: int, data, db: Session) -> dict:
+def modify_product_service(product_id: int, data, db: Session) -> ProductResponse:
     """Actualiza parcialmente un producto existente.
 
     Solo modifica los campos que fueron enviados (no None).
@@ -42,7 +49,7 @@ def modify_product_service(product_id: int, data, db: Session) -> dict:
         db: Sesión activa de SQLAlchemy.
 
     Returns:
-        Instancia de Product actualizada.
+        ProductResponse con los datos actualizados.
 
     Raises:
         ValueError: Si el producto no existe.
@@ -66,10 +73,17 @@ def modify_product_service(product_id: int, data, db: Session) -> dict:
             db,
         )
 
-    return update_product(producto, update_data, db)
+    updated_product = update_product(producto, update_data, db)
+
+    return ProductResponse(
+        id=updated_product.id,
+        name=updated_product.name,
+        price=updated_product.price,
+        quantity=updated_product.quantity,
+    )
 
 
-def get_specific_product_service(product_id: int, db: Session) -> dict:
+def get_specific_product_service(product_id: int, db: Session) -> ProductResponse:
     """Obtiene un producto específico por su ID.
 
     Args:
@@ -77,7 +91,7 @@ def get_specific_product_service(product_id: int, db: Session) -> dict:
         db: Sesión activa de SQLAlchemy.
 
     Returns:
-        Instancia de Product encontrada.
+        ProductResponse con los datos del producto.
 
     Raises:
         ValueError: Si el producto no existe.
@@ -87,7 +101,12 @@ def get_specific_product_service(product_id: int, db: Session) -> dict:
     if not producto:
         raise ValueError(f"Product {product_id} not found")
 
-    return producto
+    return ProductResponse(
+        id=producto.id,
+        name=producto.name,
+        price=producto.price,
+        quantity=producto.quantity,
+    )
 
 
 def delete_product_service(product_id: int, db: Session) -> None:
